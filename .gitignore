@@ -1,0 +1,18 @@
+# Backend
+backend/target/
+backend/Cargo.lock
+
+# Frontend
+frontend/node_modules/
+frontend/package-lock.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Game data
+game_data.dat

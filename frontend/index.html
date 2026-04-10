@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUD Game</title>
+    <link rel="stylesheet" href="node_modules/xterm/css/xterm.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+        }
+        #terminal-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        #terminal {
+            flex: 1;
+            background-color: #000000;
+        }
+        #input-area {
+            display: flex;
+            padding: 10px;
+            background-color: #222222;
+            border-top: 1px solid #444444;
+        }
+        #command-input {
+            flex: 1;
+            background-color: #333333;
+            color: #ffffff;
+            border: none;
+            padding: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        #command-input:focus {
+            outline: none;
+        }
+        #send-button {
+            background-color: #555555;
+            color: #ffffff;
+            border: none;
+            padding: 0 15px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        #send-button:hover {
+            background-color: #666666;
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal-container">
+        <div id="terminal"></div>
+        <div id="input-area">
+            <input type="text" id="command-input" placeholder="Enter command...">
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+
+    <script src="node_modules/xterm/lib/xterm.js"></script>
+    <script src="node_modules/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+    <script>
+        // 初始化终端
+        const term = new Terminal({
+            fontSize: 14,
+            theme: {
+                background: '#000000',
+                foreground: '#ffffff'
+            }
+        });
+
+        // 适配终端大小
+        const fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+        term.open(document.getElementById('terminal'));
+        fitAddon.fit();
+
+        // 处理窗口大小变化
+        window.addEventListener('resize', () => {
+            fitAddon.fit();
+        });
+
+        // 建立WebSocket连接
+        let socket;
+        function connectWebSocket() {
+            socket = new WebSocket('ws://localhost:3030/ws');
+
+            socket.onopen = function() {
+                term.write('Connected to MUD server\r\n');
+            };
+
+            socket.onmessage = function(event) {
+                term.write(event.data + '\r\n');
+            };
+
+            socket.onclose = function() {
+                term.write('Disconnected from MUD server\r\n');
+                term.write('Attempting to reconnect...\r\n');
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            socket.onerror = function(error) {
+                term.write('WebSocket error: ' + error + '\r\n');
+            };
+        }
+
+        // 连接WebSocket
+        connectWebSocket();
+
+        // 处理命令输入
+        const commandInput = document.getElementById('command-input');
+        const sendButton = document.getElementById('send-button');
+
+        function sendCommand() {
+            const command = commandInput.value.trim();
+            if (command && socket.readyState === WebSocket.OPEN) {
+                term.write('> ' + command + '\r\n');
+                socket.send(command);
+                commandInput.value = '';
+            }
+        }
+
+        sendButton.addEventListener('click', sendCommand);
+
+        commandInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendCommand();
+            }
+        });
+    </script>
+</body>
+</html>
