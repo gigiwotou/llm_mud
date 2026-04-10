@@ -79,6 +79,8 @@ pub struct Player {
     pub techniques: Vec<Technique>, // 功法
     pub equipment: Equipment, // 装备
     pub prompt_system: PromptSystem, // 提示词系统
+    pub tasks: Vec<Task>, // 玩家任务列表
+    pub currency: u32, // 货币
 }
 
 // 物品数据
@@ -143,6 +145,13 @@ pub struct Exit {
     pub target_room: String,
 }
 
+// 对话历史
+#[derive(Serialize, Deserialize, Clone)]
+pub struct DialogueHistory {
+    pub messages: Vec<(String, String)>, // (角色, 内容)
+    pub max_length: usize,
+}
+
 // NPC数据
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Npc {
@@ -156,6 +165,48 @@ pub struct Npc {
     pub ai_type: String, // AI类型
     pub prompt_system: PromptSystem, // 提示词系统
     pub behaviors: Vec<String>, // 行为模式
+    pub dialogue_history: DialogueHistory, // 对话历史
+}
+
+// 创建默认对话历史
+pub fn default_dialogue_history() -> DialogueHistory {
+    DialogueHistory {
+        messages: Vec::new(),
+        max_length: 10, // 最多保存10条消息
+    }
+}
+
+// 任务状态
+#[derive(Serialize, Deserialize, Clone)]
+pub enum TaskStatus {
+    Pending, // 待完成
+    InProgress, // 进行中
+    Completed, // 已完成
+    Failed, // 失败
+}
+
+// 任务数据
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Task {
+    pub id: String,
+    pub title: String,
+    pub description: String,
+    pub target: String, // 任务目标
+    pub reward: String, // 奖励
+    pub status: TaskStatus,
+    pub progress: u32, // 任务进度
+    pub max_progress: u32, // 最大进度
+    pub expiration: Option<u64>, // 过期时间（时间戳）
+}
+
+// 战斗结果
+#[derive(Serialize, Deserialize, Clone)]
+pub struct CombatResult {
+    pub success: bool,
+    pub message: String,
+    pub damage: u32,
+    pub attacker_health: u32,
+    pub defender_health: u32,
 }
 
 // 游戏状态数据
@@ -165,6 +216,7 @@ pub struct GameState {
     pub rooms: Vec<Room>,
     pub npcs: Vec<Npc>,
     pub items: Vec<Item>,
+    pub tasks: Vec<Task>, // 全局任务列表
 }
 
 // 创建默认属性
@@ -233,6 +285,7 @@ impl GameState {
                     ai_type: "merchant".to_string(),
                     prompt_system: default_prompt_system(vec!["客栈老板", "友好", "经商", "提供住宿"].iter().map(|s| s.to_string()).collect()),
                     behaviors: vec!["欢迎顾客", "提供信息", "出售物品"].iter().map(|s| s.to_string()).collect(),
+                    dialogue_history: default_dialogue_history(),
                 },
                 Npc {
                     id: "npc2".to_string(),
@@ -245,6 +298,7 @@ impl GameState {
                     ai_type: "herbalist".to_string(),
                     prompt_system: default_prompt_system(vec!["药店老板", "草药专家", "知识渊博", "治疗"].iter().map(|s| s.to_string()).collect()),
                     behaviors: vec!["识别草药", "配制药物", "提供医疗建议"].iter().map(|s| s.to_string()).collect(),
+                    dialogue_history: default_dialogue_history(),
                 },
             ],
             items: vec![
@@ -300,6 +354,10 @@ impl GameState {
                     direction: "south".to_string(),
                     target_room: "room1".to_string(),
                 },
+                Exit {
+                    direction: "north".to_string(),
+                    target_room: "room6".to_string(),
+                },
             ],
             npcs: vec![
                 Npc {
@@ -313,6 +371,7 @@ impl GameState {
                     ai_type: "monster".to_string(),
                     prompt_system: default_prompt_system(vec!["山林妖兽", "凶猛", "攻击性强", "妖兽"].iter().map(|s| s.to_string()).collect()),
                     behaviors: vec!["攻击入侵者", "守卫领地", "寻找食物"].iter().map(|s| s.to_string()).collect(),
+                    dialogue_history: default_dialogue_history(),
                 },
             ],
             items: vec![
@@ -355,6 +414,10 @@ impl GameState {
                     direction: "north".to_string(),
                     target_room: "room1".to_string(),
                 },
+                Exit {
+                    direction: "south".to_string(),
+                    target_room: "room7".to_string(),
+                },
             ],
             npcs: vec![
                 Npc {
@@ -368,6 +431,7 @@ impl GameState {
                     ai_type: "villager".to_string(),
                     prompt_system: default_prompt_system(vec!["农民", "朴实", "勤劳", "种田"].iter().map(|s| s.to_string()).collect()),
                     behaviors: vec!["种田", "收获", "出售农产品"].iter().map(|s| s.to_string()).collect(),
+                    dialogue_history: default_dialogue_history(),
                 },
             ],
             items: vec![
@@ -410,6 +474,10 @@ impl GameState {
                     direction: "west".to_string(),
                     target_room: "room1".to_string(),
                 },
+                Exit {
+                    direction: "east".to_string(),
+                    target_room: "room8".to_string(),
+                },
             ],
             npcs: vec![
                 Npc {
@@ -423,6 +491,7 @@ impl GameState {
                     ai_type: "merchant".to_string(),
                     prompt_system: default_prompt_system(vec!["武器商", "经验丰富", "出售武器", " craftsmanship"].iter().map(|s| s.to_string()).collect()),
                     behaviors: vec!["出售武器", "修理装备", "提供武器建议"].iter().map(|s| s.to_string()).collect(),
+                    dialogue_history: default_dialogue_history(),
                 },
             ],
             items: vec![
@@ -477,6 +546,10 @@ impl GameState {
                     direction: "east".to_string(),
                     target_room: "room1".to_string(),
                 },
+                Exit {
+                    direction: "west".to_string(),
+                    target_room: "room9".to_string(),
+                },
             ],
             npcs: vec![
                 Npc {
@@ -490,6 +563,7 @@ impl GameState {
                     ai_type: "cultivator".to_string(),
                     prompt_system: default_prompt_system(vec!["修士", "游历", "修为深厚", "知识渊博"].iter().map(|s| s.to_string()).collect()),
                     behaviors: vec!["修炼", "传授知识", "交流修炼心得"].iter().map(|s| s.to_string()).collect(),
+                    dialogue_history: default_dialogue_history(),
                 },
             ],
             items: vec![
@@ -523,11 +597,237 @@ impl GameState {
             region: "九州".to_string(),
         };
         
+        // 新增房间
+        let mountain_peak = Room {
+            id: "room6".to_string(),
+            name: "山顶".to_string(),
+            description: "山林的山顶，可以俯瞰整个九州村。这里有一座古老的道观。".to_string(),
+            exits: vec![
+                Exit {
+                    direction: "south".to_string(),
+                    target_room: "room2".to_string(),
+                },
+            ],
+            npcs: vec![
+                Npc {
+                    id: "npc7".to_string(),
+                    name: "道长".to_string(),
+                    description: "山顶道观的道长，修为深厚，精通道法。".to_string(),
+                    level: 8,
+                    attributes: default_attributes(8),
+                    character_type: "NPC".to_string(),
+                    race: "人类".to_string(),
+                    ai_type: "cultivator".to_string(),
+                    prompt_system: default_prompt_system(vec!["道长", "修为深厚", "精通道法", "慈祥"].iter().map(|s| s.to_string()).collect()),
+                    behaviors: vec!["修炼", "传授道法", "讲经布道"].iter().map(|s| s.to_string()).collect(),
+                    dialogue_history: default_dialogue_history(),
+                },
+            ],
+            items: vec![
+                Item {
+                    id: "item8".to_string(),
+                    name: "道德经".to_string(),
+                    description: "一本古老的道德经，蕴含着深奥的道法。".to_string(),
+                    value: 50,
+                    item_type: "CultivationItem".to_string(),
+                    level: 8,
+                    attributes: Some(Attributes {
+                        strength: 0,
+                        agility: 0,
+                        intelligence: 10,
+                        vitality: 0,
+                        qi: 15,
+                        spiritual_awareness: 10,
+                        physical_strength: 0,
+                        sword_heart: 0,
+                        health: 0,
+                        mana: 0,
+                        defense: 0,
+                        attack: 0,
+                        speed: 0,
+                    }),
+                    prompt_system: default_prompt_system(vec!["道德经", "古老", "深奥", "道法"].iter().map(|s| s.to_string()).collect()),
+                    is_growable: false,
+                    growth_stage: 0,
+                },
+            ],
+            region: "九州".to_string(),
+        };
+        
+        let orchard = Room {
+            id: "room7".to_string(),
+            name: "果园".to_string(),
+            description: "一片茂密的果园，种满了各种水果树。空气中弥漫着果香。".to_string(),
+            exits: vec![
+                Exit {
+                    direction: "north".to_string(),
+                    target_room: "room3".to_string(),
+                },
+            ],
+            npcs: vec![
+                Npc {
+                    id: "npc8".to_string(),
+                    name: "果农".to_string(),
+                    description: "果园的主人，负责管理和采摘水果。".to_string(),
+                    level: 2,
+                    attributes: default_attributes(2),
+                    character_type: "NPC".to_string(),
+                    race: "人类".to_string(),
+                    ai_type: "villager".to_string(),
+                    prompt_system: default_prompt_system(vec!["果农", "勤劳", "善良", "熟悉水果"].iter().map(|s| s.to_string()).collect()),
+                    behaviors: vec!["采摘水果", "管理果园", "出售水果"].iter().map(|s| s.to_string()).collect(),
+                    dialogue_history: default_dialogue_history(),
+                },
+            ],
+            items: vec![
+                Item {
+                    id: "item9".to_string(),
+                    name: "灵果".to_string(),
+                    description: "一种蕴含灵力的水果，食用后可以提升修为。".to_string(),
+                    value: 15,
+                    item_type: "CultivationItem".to_string(),
+                    level: 3,
+                    attributes: Some(Attributes {
+                        strength: 0,
+                        agility: 0,
+                        intelligence: 0,
+                        vitality: 0,
+                        qi: 10,
+                        spiritual_awareness: 0,
+                        physical_strength: 0,
+                        sword_heart: 0,
+                        health: 30,
+                        mana: 20,
+                        defense: 0,
+                        attack: 0,
+                        speed: 0,
+                    }),
+                    prompt_system: default_prompt_system(vec!["灵果", "香甜", "蕴含灵力", "稀有"].iter().map(|s| s.to_string()).collect()),
+                    is_growable: true,
+                    growth_stage: 2,
+                },
+            ],
+            region: "九州".to_string(),
+        };
+        
+        let workshop = Room {
+            id: "room8".to_string(),
+            name: "工坊".to_string(),
+            description: "一个铁匠工坊，里面有各种锻造工具和熔炉。铁匠正在打造武器。".to_string(),
+            exits: vec![
+                Exit {
+                    direction: "west".to_string(),
+                    target_room: "room4".to_string(),
+                },
+            ],
+            npcs: vec![
+                Npc {
+                    id: "npc9".to_string(),
+                    name: "铁匠".to_string(),
+                    description: "一个经验丰富的铁匠，精通武器锻造。".to_string(),
+                    level: 4,
+                    attributes: default_attributes(4),
+                    character_type: "NPC".to_string(),
+                    race: "人类".to_string(),
+                    ai_type: "craftsman".to_string(),
+                    prompt_system: default_prompt_system(vec!["铁匠", "经验丰富", "精通锻造", "豪爽"].iter().map(|s| s.to_string()).collect()),
+                    behaviors: vec!["锻造武器", "修理装备", "传授锻造技巧"].iter().map(|s| s.to_string()).collect(),
+                    dialogue_history: default_dialogue_history(),
+                },
+            ],
+            items: vec![
+                Item {
+                    id: "item10".to_string(),
+                    name: "精铁剑".to_string(),
+                    description: "一把由精铁打造的剑，比普通铁剑更锋利。".to_string(),
+                    value: 30,
+                    item_type: "Weapon".to_string(),
+                    level: 3,
+                    attributes: Some(Attributes {
+                        strength: 0,
+                        agility: 0,
+                        intelligence: 0,
+                        vitality: 0,
+                        qi: 0,
+                        spiritual_awareness: 0,
+                        physical_strength: 0,
+                        sword_heart: 0,
+                        health: 0,
+                        mana: 0,
+                        defense: 0,
+                        attack: 15,
+                        speed: 0,
+                    }),
+                    prompt_system: default_prompt_system(vec!["精铁剑", "锋利", "耐用", "武器"].iter().map(|s| s.to_string()).collect()),
+                    is_growable: false,
+                    growth_stage: 0,
+                },
+            ],
+            region: "九州".to_string(),
+        };
+        
+        let forest = Room {
+            id: "room9".to_string(),
+            name: "西部森林".to_string(),
+            description: "一片茂密的森林，树木高大，阳光透过树叶洒下斑驳的光影。".to_string(),
+            exits: vec![
+                Exit {
+                    direction: "east".to_string(),
+                    target_room: "room5".to_string(),
+                },
+            ],
+            npcs: vec![
+                Npc {
+                    id: "npc10".to_string(),
+                    name: "森林精灵".to_string(),
+                    description: "一个居住在森林中的精灵，守护着这片森林。".to_string(),
+                    level: 6,
+                    attributes: default_attributes(6),
+                    character_type: "NPC".to_string(),
+                    race: "妖兽".to_string(),
+                    ai_type: "guardian".to_string(),
+                    prompt_system: default_prompt_system(vec!["森林精灵", "守护森林", "善良", "神秘"].iter().map(|s| s.to_string()).collect()),
+                    behaviors: vec!["守护森林", "帮助迷路的人", "与自然交流"].iter().map(|s| s.to_string()).collect(),
+                    dialogue_history: default_dialogue_history(),
+                },
+            ],
+            items: vec![
+                Item {
+                    id: "item11".to_string(),
+                    name: "森林之泪".to_string(),
+                    description: "森林精灵的眼泪，蕴含着生命的力量。".to_string(),
+                    value: 40,
+                    item_type: "CultivationItem".to_string(),
+                    level: 6,
+                    attributes: Some(Attributes {
+                        strength: 0,
+                        agility: 0,
+                        intelligence: 0,
+                        vitality: 10,
+                        qi: 15,
+                        spiritual_awareness: 5,
+                        physical_strength: 0,
+                        sword_heart: 0,
+                        health: 50,
+                        mana: 30,
+                        defense: 0,
+                        attack: 0,
+                        speed: 0,
+                    }),
+                    prompt_system: default_prompt_system(vec!["森林之泪", "神秘", "蕴含生命力量", "稀有"].iter().map(|s| s.to_string()).collect()),
+                    is_growable: false,
+                    growth_stage: 0,
+                },
+            ],
+            region: "九州".to_string(),
+        };
+        
         Self {
             players: vec![],
-            rooms: vec![start_room, north_room, south_room, east_room, west_room],
+            rooms: vec![start_room, north_room, south_room, east_room, west_room, mountain_peak, orchard, workshop, forest],
             npcs: vec![],
             items: vec![],
+            tasks: vec![],
         }
     }
     
@@ -550,6 +850,103 @@ impl GameState {
     pub fn update_player(&mut self, updated_player: Player) {
         if let Some(index) = self.players.iter().position(|p| p.id == updated_player.id) {
             self.players[index] = updated_player;
+        }
+    }
+    
+    // 计算伤害
+    pub fn calculate_damage(&self, attacker: &Attributes, defender: &Attributes) -> u32 {
+        let base_damage = attacker.attack;
+        let defense = defender.defense;
+        let damage = if base_damage > defense {
+            base_damage - defense
+        } else {
+            1 // 最小伤害为1
+        };
+        damage
+    }
+    
+    // 玩家攻击NPC
+    pub fn player_attack_npc(&mut self, player_id: &str, npc_name: &str) -> CombatResult {
+        if let Some(player) = self.find_player(player_id) {
+            if let Some(room) = self.find_room(&player.location) {
+                if let Some(npc_index) = room.npcs.iter().position(|n| n.name == npc_name) {
+                    let mut npc = room.npcs[npc_index].clone();
+                    let mut player = player.clone();
+                    
+                    // 计算伤害
+                    let damage = self.calculate_damage(&player.attributes, &npc.attributes);
+                    
+                    // 减少NPC生命值
+                    if npc.attributes.health > damage {
+                        npc.attributes.health -= damage;
+                    } else {
+                        npc.attributes.health = 0;
+                    }
+                    
+                    // 计算NPC反击伤害
+                    let counter_damage = self.calculate_damage(&npc.attributes, &player.attributes);
+                    if player.attributes.health > counter_damage {
+                        player.attributes.health -= counter_damage;
+                    } else {
+                        player.attributes.health = 0;
+                    }
+                    
+                    // 保存生命值状态
+                    let npc_health = npc.attributes.health;
+                    let player_health = player.attributes.health;
+                    
+                    // 更新NPC
+                    let mut updated_room = room.clone();
+                    updated_room.npcs[npc_index] = npc;
+                    if let Some(room_index) = self.rooms.iter().position(|r| r.id == room.id) {
+                        self.rooms[room_index] = updated_room;
+                    }
+                    
+                    // 更新玩家
+                    self.update_player(player);
+                    
+                    // 构建战斗结果
+                    let message = if npc_health == 0 {
+                        format!("你击败了{}！", npc_name)
+                    } else if player_health == 0 {
+                        "你被击败了！".to_string()
+                    } else {
+                        format!("你对{}造成了{}点伤害，{}对你造成了{}点伤害。", npc_name, damage, npc_name, counter_damage)
+                    };
+                    
+                    CombatResult {
+                        success: true,
+                        message,
+                        damage,
+                        attacker_health: player_health,
+                        defender_health: npc_health,
+                    }
+                } else {
+                    CombatResult {
+                        success: false,
+                        message: format!("这里没有{}.", npc_name),
+                        damage: 0,
+                        attacker_health: 0,
+                        defender_health: 0,
+                    }
+                }
+            } else {
+                CombatResult {
+                    success: false,
+                    message: "你在一个未知的位置。".to_string(),
+                    damage: 0,
+                    attacker_health: 0,
+                    defender_health: 0,
+                }
+            }
+        } else {
+            CombatResult {
+                success: false,
+                message: "找不到玩家。".to_string(),
+                damage: 0,
+                attacker_health: 0,
+                defender_health: 0,
+            }
         }
     }
 }

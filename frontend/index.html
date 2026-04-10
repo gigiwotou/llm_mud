@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MUD Game</title>
-    <link rel="stylesheet" href="node_modules/xterm/css/xterm.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.18.0/css/xterm.css">
     <style>
         body {
             margin: 0;
@@ -13,9 +13,13 @@
             background-color: #121212;
             color: #ffffff;
         }
-        #terminal-container {
+        #game-container {
             width: 100vw;
             height: 100vh;
+            display: flex;
+        }
+        #main-content {
+            flex: 1;
             display: flex;
             flex-direction: column;
         }
@@ -52,50 +56,192 @@
         #send-button:hover {
             background-color: #666666;
         }
+        #sidebar {
+            width: 300px;
+            background-color: #1a1a1a;
+            border-left: 1px solid #444444;
+            display: flex;
+            flex-direction: column;
+        }
+        #sidebar-header {
+            padding: 10px;
+            background-color: #2a2a2a;
+            border-bottom: 1px solid #444444;
+            font-weight: bold;
+            text-align: center;
+        }
+        #sidebar-content {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        #status-panel {
+            margin-bottom: 20px;
+        }
+        #status-panel h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+        #status-panel p {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        #settings-panel h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #2196F3;
+        }
+        #settings-panel label {
+            display: block;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        #settings-panel input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+        #settings-panel button {
+            margin-top: 10px;
+            background-color: #555555;
+            color: #ffffff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        #settings-panel button:hover {
+            background-color: #666666;
+        }
+        .tab-buttons {
+            display: flex;
+            background-color: #2a2a2a;
+            border-bottom: 1px solid #444444;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .tab-button.active {
+            background-color: #3a3a3a;
+            border-bottom: 2px solid #4CAF50;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <div id="terminal-container">
-        <div id="terminal"></div>
-        <div id="input-area">
-            <input type="text" id="command-input" placeholder="Enter command...">
-            <button id="send-button">Send</button>
+    <div id="game-container">
+        <div id="main-content">
+            <div id="terminal"></div>
+            <div id="input-area">
+                <input type="text" id="command-input" placeholder="Enter command...">
+                <button id="send-button">Send</button>
+            </div>
+        </div>
+        <div id="sidebar">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="status">状态</button>
+                <button class="tab-button" data-tab="settings">设置</button>
+            </div>
+            <div id="sidebar-content">
+                <div id="status-tab" class="tab-content active">
+                    <div id="status-panel">
+                        <h3>玩家状态</h3>
+                        <p><strong>名称:</strong> <span id="player-name">未知</span></p>
+                        <p><strong>等级:</strong> <span id="player-level">1</span></p>
+                        <p><strong>生命值:</strong> <span id="player-health">100</span></p>
+                        <p><strong>法力值:</strong> <span id="player-mana">50</span></p>
+                        <p><strong>攻击:</strong> <span id="player-attack">10</span></p>
+                        <p><strong>防御:</strong> <span id="player-defense">5</span></p>
+                    </div>
+                </div>
+                <div id="settings-tab" class="tab-content">
+                    <div id="settings-panel">
+                        <h3>游戏设置</h3>
+                        <label>
+                            字体大小: <span id="font-size-value">14</span>
+                            <input type="range" id="font-size" min="10" max="20" value="14">
+                        </label>
+                        <label>
+                            透明度: <span id="opacity-value">100</span>%
+                            <input type="range" id="opacity" min="50" max="100" value="100">
+                        </label>
+                        <button id="save-settings">保存设置</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script src="node_modules/xterm/lib/xterm.js"></script>
-    <script src="node_modules/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+    <!-- 从CDN加载xterm.js，避免本地文件路径问题 -->
+    <script src="https://cdn.jsdelivr.net/npm/xterm@4.18.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
     <script>
+        // 全局变量
+        let term;
+        let fitAddon;
+        let socket;
+
         // 初始化终端
-        const term = new Terminal({
-            fontSize: 14,
-            theme: {
-                background: '#000000',
-                foreground: '#ffffff'
+        function initTerminal() {
+            try {
+                console.log('Initializing terminal...');
+                term = new Terminal({
+                    fontSize: 14,
+                    theme: {
+                        background: '#000000',
+                        foreground: '#ffffff'
+                    }
+                });
+                console.log('Terminal created:', term);
+
+                // 适配终端大小
+                fitAddon = new FitAddon.FitAddon();
+                console.log('FitAddon created:', fitAddon);
+                term.loadAddon(fitAddon);
+                console.log('FitAddon loaded');
+                
+                const terminalElement = document.getElementById('terminal');
+                console.log('Terminal element:', terminalElement);
+                term.open(terminalElement);
+                console.log('Terminal opened');
+                fitAddon.fit();
+                console.log('Terminal fitted');
+
+                // 处理窗口大小变化
+                window.addEventListener('resize', () => {
+                    fitAddon.fit();
+                });
+                console.log('Resize listener added');
+            } catch (e) {
+                console.error('Error initializing terminal:', e);
+                // 在页面上显示错误信息
+                const errorDiv = document.createElement('div');
+                errorDiv.style.color = 'red';
+                errorDiv.style.padding = '10px';
+                errorDiv.innerHTML = 'Error initializing terminal: ' + e.message;
+                document.body.appendChild(errorDiv);
             }
-        });
-
-        // 适配终端大小
-        const fitAddon = new FitAddon.FitAddon();
-        term.loadAddon(fitAddon);
-        term.open(document.getElementById('terminal'));
-        fitAddon.fit();
-
-        // 处理窗口大小变化
-        window.addEventListener('resize', () => {
-            fitAddon.fit();
-        });
+        }
 
         // 建立WebSocket连接
-        let socket;
         function connectWebSocket() {
             console.log('Attempting to connect to WebSocket server...');
             try {
                 // 使用相对路径连接WebSocket，避免跨域问题
                 const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                const wsUrl = `${wsProtocol}//${window.location.host}:${window.location.port}/ws`;
+                const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+                console.log('WebSocket URL:', wsUrl);
                 socket = new WebSocket(wsUrl);
-                console.log('Connecting to WebSocket URL:', wsUrl);
                 console.log('WebSocket created:', socket);
 
                 socket.onopen = function() {
@@ -106,6 +252,8 @@
                 socket.onmessage = function(event) {
                     console.log('Received message:', event.data);
                     term.write(event.data + '\r\n');
+                    // 解析消息，更新状态面板
+                    updateStatusPanel(event.data);
                 };
 
                 socket.onclose = function(event) {
@@ -126,29 +274,164 @@
             }
         }
 
-        // 连接WebSocket
-        connectWebSocket();
-
         // 处理命令输入
-        const commandInput = document.getElementById('command-input');
-        const sendButton = document.getElementById('send-button');
-
         function sendCommand() {
+            const commandInput = document.getElementById('command-input');
             const command = commandInput.value.trim();
-            if (command && socket.readyState === WebSocket.OPEN) {
+            console.log('sendCommand called with command:', command);
+            if (command && socket && socket.readyState === WebSocket.OPEN) {
+                console.log('Sending command:', command);
                 term.write('> ' + command + '\r\n');
                 socket.send(command);
                 commandInput.value = '';
+            } else if (!socket) {
+                console.error('Socket not initialized');
+                term.write('Error: Socket not initialized\r\n');
+            } else if (socket.readyState !== WebSocket.OPEN) {
+                console.error('Socket not open, readyState:', socket.readyState);
+                term.write('Error: Socket not connected\r\n');
             }
         }
 
-        sendButton.addEventListener('click', sendCommand);
-
-        commandInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendCommand();
+        // 更新状态面板
+        function updateStatusPanel(message) {
+            // 简单的状态更新逻辑，实际项目中可能需要更复杂的解析
+            if (message.includes('等级:')) {
+                const levelMatch = message.match(/等级: (\d+)/);
+                if (levelMatch) {
+                    document.getElementById('player-level').textContent = levelMatch[1];
+                }
             }
-        });
+            
+            if (message.includes('生命:')) {
+                const healthMatch = message.match(/生命: (\d+)/);
+                if (healthMatch) {
+                    document.getElementById('player-health').textContent = healthMatch[1];
+                }
+            }
+            
+            if (message.includes('法力:')) {
+                const manaMatch = message.match(/法力: (\d+)/);
+                if (manaMatch) {
+                    document.getElementById('player-mana').textContent = manaMatch[1];
+                }
+            }
+            
+            if (message.includes('攻击:')) {
+                const attackMatch = message.match(/攻击: (\d+)/);
+                if (attackMatch) {
+                    document.getElementById('player-attack').textContent = attackMatch[1];
+                }
+            }
+            
+            if (message.includes('防御:')) {
+                const defenseMatch = message.match(/防御: (\d+)/);
+                if (defenseMatch) {
+                    document.getElementById('player-defense').textContent = defenseMatch[1];
+                }
+            }
+        }
+
+        // 加载保存的设置
+        function loadSettings() {
+            const fontSizeSlider = document.getElementById('font-size');
+            const fontSizeValue = document.getElementById('font-size-value');
+            const opacitySlider = document.getElementById('opacity');
+            const opacityValue = document.getElementById('opacity-value');
+            
+            const savedFontSize = localStorage.getItem('fontSize');
+            const savedOpacity = localStorage.getItem('opacity');
+            
+            if (savedFontSize) {
+                fontSizeSlider.value = savedFontSize;
+                fontSizeValue.textContent = savedFontSize;
+                term.options.fontSize = parseInt(savedFontSize);
+            }
+            
+            if (savedOpacity) {
+                opacitySlider.value = savedOpacity;
+                opacityValue.textContent = savedOpacity;
+                document.getElementById('terminal').style.opacity = savedOpacity / 100;
+            }
+        }
+
+        // 初始化函数
+        function init() {
+            // 初始化终端
+            initTerminal();
+            
+            // 连接WebSocket
+            connectWebSocket();
+            
+            // 处理命令输入
+            const commandInput = document.getElementById('command-input');
+            const sendButton = document.getElementById('send-button');
+
+            console.log('Command input element:', commandInput);
+            console.log('Send button element:', sendButton);
+
+            sendButton.addEventListener('click', sendCommand);
+            console.log('Click listener added');
+
+            commandInput.addEventListener('keypress', function(e) {
+                console.log('Keypress event:', e);
+                if (e.key === 'Enter') {
+                    sendCommand();
+                }
+            });
+            console.log('Keypress listener added');
+
+            // 标签页切换
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tab = button.dataset.tab;
+                    
+                    // 更新标签按钮状态
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // 更新标签内容
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(tab + '-tab').classList.add('active');
+                });
+            });
+
+            // 设置处理
+            const fontSizeSlider = document.getElementById('font-size');
+            const fontSizeValue = document.getElementById('font-size-value');
+            const opacitySlider = document.getElementById('opacity');
+            const opacityValue = document.getElementById('opacity-value');
+            const saveSettingsButton = document.getElementById('save-settings');
+
+            fontSizeSlider.addEventListener('input', () => {
+                const value = fontSizeSlider.value;
+                fontSizeValue.textContent = value;
+                term.options.fontSize = parseInt(value);
+                fitAddon.fit();
+            });
+
+            opacitySlider.addEventListener('input', () => {
+                const value = opacitySlider.value;
+                opacityValue.textContent = value;
+                document.getElementById('terminal').style.opacity = value / 100;
+            });
+
+            saveSettingsButton.addEventListener('click', () => {
+                // 保存设置到本地存储
+                localStorage.setItem('fontSize', fontSizeSlider.value);
+                localStorage.setItem('opacity', opacitySlider.value);
+                term.write('设置已保存\r\n');
+            });
+
+            // 加载设置
+            loadSettings();
+        }
+
+        // 页面加载完成后初始化
+        window.onload = init;
     </script>
 </body>
 </html>

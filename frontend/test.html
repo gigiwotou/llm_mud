@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <div id="messages"></div>
+    <input type="text" id="command" placeholder="Enter command...">
+    <button onclick="sendCommand()">Send</button>
+
+    <script>
+        const messages = document.getElementById('messages');
+        const commandInput = document.getElementById('command');
+
+        function logMessage(message) {
+            const div = document.createElement('div');
+            div.textContent = message;
+            messages.appendChild(div);
+        }
+
+        // 建立WebSocket连接
+        logMessage('Attempting to connect to WebSocket server...');
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+        logMessage(`WebSocket URL: ${wsUrl}`);
+        
+        const socket = new WebSocket(wsUrl);
+
+        socket.onopen = function() {
+            logMessage('WebSocket connection opened');
+        };
+
+        socket.onmessage = function(event) {
+            logMessage(`Server: ${event.data}`);
+        };
+
+        socket.onclose = function(event) {
+            logMessage(`WebSocket connection closed: ${event.code} ${event.reason}`);
+        };
+
+        socket.onerror = function(error) {
+            logMessage(`WebSocket error: ${error}`);
+        };
+
+        function sendCommand() {
+            const command = commandInput.value.trim();
+            if (command) {
+                logMessage(`You: ${command}`);
+                socket.send(command);
+                commandInput.value = '';
+            }
+        }
+
+        // 处理Enter键
+        commandInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendCommand();
+            }
+        });
+    </script>
+</body>
+</html>
