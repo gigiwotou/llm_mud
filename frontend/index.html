@@ -89,25 +89,41 @@
         // 建立WebSocket连接
         let socket;
         function connectWebSocket() {
-            socket = new WebSocket('ws://localhost:3030/ws');
+            console.log('Attempting to connect to WebSocket server...');
+            try {
+                // 使用相对路径连接WebSocket，避免跨域问题
+                const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = `${wsProtocol}//${window.location.host}:${window.location.port}/ws`;
+                socket = new WebSocket(wsUrl);
+                console.log('Connecting to WebSocket URL:', wsUrl);
+                console.log('WebSocket created:', socket);
 
-            socket.onopen = function() {
-                term.write('Connected to MUD server\r\n');
-            };
+                socket.onopen = function() {
+                    console.log('WebSocket connection opened');
+                    term.write('Connected to MUD server\r\n');
+                };
 
-            socket.onmessage = function(event) {
-                term.write(event.data + '\r\n');
-            };
+                socket.onmessage = function(event) {
+                    console.log('Received message:', event.data);
+                    term.write(event.data + '\r\n');
+                };
 
-            socket.onclose = function() {
-                term.write('Disconnected from MUD server\r\n');
-                term.write('Attempting to reconnect...\r\n');
+                socket.onclose = function(event) {
+                    console.log('WebSocket connection closed:', event);
+                    term.write('Disconnected from MUD server\r\n');
+                    term.write('Attempting to reconnect...\r\n');
+                    setTimeout(connectWebSocket, 3000);
+                };
+
+                socket.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                    term.write('WebSocket error: ' + error + '\r\n');
+                };
+            } catch (e) {
+                console.error('Error creating WebSocket:', e);
+                term.write('Error creating WebSocket: ' + e + '\r\n');
                 setTimeout(connectWebSocket, 3000);
-            };
-
-            socket.onerror = function(error) {
-                term.write('WebSocket error: ' + error + '\r\n');
-            };
+            }
         }
 
         // 连接WebSocket

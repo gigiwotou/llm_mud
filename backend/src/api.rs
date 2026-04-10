@@ -7,12 +7,14 @@ use rand;
 
 use crate::game::{GameState, Player};
 use crate::storage::MemoryMappedStorage;
+use crate::ai::AIService;
 
 // 游戏命令处理
 async fn handle_command(
     command: String,
     player_id: &str,
-    game_state: &mut GameState
+    game_state: &mut GameState,
+    ai_service: &AIService
 ) -> String {
     let parts: Vec<&str> = command.split_whitespace().collect();
     if parts.is_empty() {
@@ -21,7 +23,7 @@ async fn handle_command(
     
     match parts[0] {
         "help" => {
-            "可用命令: help, look, north, south, east, west, say, inventory, take, drop, stats, skills, techniques".to_string()
+            "可用命令: help, look, north, south, east, west, say, inventory, take, drop, stats, skills, techniques, talk".to_string()
         }
         "look" => {
             if let Some(player) = game_state.find_player(player_id) {
@@ -198,6 +200,32 @@ async fn handle_command(
                 "找不到玩家。".to_string()
             }
         }
+        "talk" => {
+            if parts.len() > 1 {
+                let npc_name = parts[1..].join(" ");
+                if let Some(player) = game_state.find_player(player_id) {
+                    if let Some(room) = game_state.find_room(&player.location) {
+                        if let Some(npc) = room.npcs.iter().find(|n| n.name == npc_name) {
+                            // 构建NPC的提示词
+                            let npc_prompts = npc.prompt_system.current_prompts.clone();
+                            // 生成NPC的响应
+                            match ai_service.get_npc_response(&npc.name, &npc_prompts, "你好，我想和你聊聊").await {
+                                Ok(response) => format!("{}: {}", npc.name, response),
+                                Err(e) => format!("与{}交流时发生错误: {:?}", npc.name, e),
+                            }
+                        } else {
+                            format!("这里没有{}.", npc_name)
+                        }
+                    } else {
+                        "你在一个未知的位置。".to_string()
+                    }
+                } else {
+                    "找不到玩家。".to_string()
+                }
+            } else {
+                "你想和谁说话？".to_string()
+            }
+        }
         _ => {
             format!("未知命令: {}. 输入 'help' 查看可用命令。", parts[0])
         }
@@ -208,7 +236,8 @@ async fn handle_command(
 async fn handle_websocket(
     ws: WebSocket,
     game_state: Arc<Mutex<GameState>>,
-    storage: Arc<Mutex<MemoryMappedStorage>>
+    storage: Arc<Mutex<MemoryMappedStorage>>,
+    ai_service: Arc<AIService>
 ) {
     let (mut tx, mut rx) = ws.split();
     
@@ -269,7 +298,7 @@ async fn handle_websocket(
             Ok(msg) => {
                 if let Ok(text) = msg.to_str() {
                     let mut state = game_state.lock().await;
-                    let response = handle_command(text.to_string(), &player_id, &mut state).await;
+                    let response = handle_command(text.to_string(), &player_id, &mut state, &ai_service).await;
                     
                     // 保存游戏状态
                     let mut storage = storage.lock().await;
@@ -289,15 +318,23 @@ async fn handle_websocket(
 // API路由
 pub fn routes(
     game_state: Arc<Mutex<GameState>>,
-    storage: Arc<Mutex<MemoryMappedStorage>>
+    storage: Arc<Mutex<MemoryMappedStorage>>,
+    ai_service: Arc<AIService>
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+    // 添加CORS支持
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_headers(vec!["Content-Type"])
+        .allow_methods(vec!["GET", "POST", "OPTIONS"]);
+    
     // WebSocket路由
     let ws_route = warp::path("ws")
         .and(warp::ws())
         .map(move |ws: warp::ws::Ws| {
             let game_state = game_state.clone();
             let storage = storage.clone();
-            ws.on_upgrade(move |socket| handle_websocket(socket, game_state, storage))
+            let ai_service = ai_service.clone();
+            ws.on_upgrade(move |socket| handle_websocket(socket, game_state, storage, ai_service))
         });
     
     // 健康检查路由
@@ -305,6 +342,17 @@ pub fn routes(
         .and(warp::get())
         .map(|| warp::reply::json(&serde_json::json!({"status": "ok"})));
     
-    // 组合路由
-    ws_route.or(health_route)
+    // 静态文件服务
+    let static_route = warp::path::path("static")
+        .and(warp::fs::dir("../frontend"));
+    
+    // 根路径重定向到index.html
+    use warp::redirect;
+    use warp::http::Uri;
+    let root_route = warp::path::end()
+        .and(warp::get())
+        .map(|| redirect::found(Uri::try_from("/static/index.html").unwrap()));
+    
+    // 组合路由并添加CORS
+    ws_route.or(health_route).or(static_route).or(root_route).with(cors)
 }

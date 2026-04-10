@@ -4,6 +4,7 @@ use tokio::sync::Mutex;
 mod game;
 mod storage;
 mod api;
+mod ai;
 
 #[tokio::main]
 async fn main() {
@@ -21,12 +22,19 @@ async fn main() {
         println!("No existing game state found, using default");
     }
     
+    // 初始化AI服务（使用OpenAI API作为示例）
+    let ai_service = Arc::new(ai::AIService::new(
+        "https://api.openai.com/v1/chat/completions",
+        "YOUR_OPENAI_API_KEY", // 这里需要替换为实际的API密钥
+        "gpt-3.5-turbo"
+    ));
+    
     // 创建API路由
-    let routes = api::routes(game_state.clone(), storage.clone());
+    let routes = api::routes(game_state.clone(), storage.clone(), ai_service.clone());
     
     // 启动服务器
-    println!("Starting MUD server on 127.0.0.1:3030");
+    println!("Starting MUD server on 0.0.0.0:3030");
     warp::serve(routes)
-        .run(([127, 0, 0, 1], 3030))
+        .run(([0, 0, 0, 0], 3030))
         .await;
 }
