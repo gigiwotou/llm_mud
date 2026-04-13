@@ -162,6 +162,48 @@
         // 处理命令输入
         let commandBuffer = '';
 
+        // 游戏内设置命令
+        function handleSettingsCommand(command) {
+            const parts = command.split(' ');
+            if (parts.length < 3) {
+                term.write('用法: settings <fontsize|opacity> <value>\r\n');
+                return;
+            }
+            
+            const setting = parts[1];
+            const value = parseInt(parts[2]);
+            
+            if (setting === 'fontsize') {
+                if (value >= 10 && value <= 20) {
+                    term.options.fontSize = value;
+                    fitAddon.fit();
+                    localStorage.setItem('fontSize', value.toString());
+                    term.write(`字体大小已设置为 ${value}\r\n`);
+                } else {
+                    term.write('字体大小必须在 10-20 之间\r\n');
+                }
+            } else if (setting === 'opacity') {
+                if (value >= 50 && value <= 100) {
+                    document.getElementById('terminal').style.opacity = value / 100;
+                    localStorage.setItem('opacity', value.toString());
+                    term.write(`透明度已设置为 ${value}%\r\n`);
+                } else {
+                    term.write('透明度必须在 50-100 之间\r\n');
+                }
+            } else {
+                term.write('未知设置项，可用设置: fontsize, opacity\r\n');
+            }
+        }
+
+        // 扩展命令处理
+        function handleCustomCommand(command) {
+            if (command.startsWith('settings')) {
+                handleSettingsCommand(command);
+                return true;
+            }
+            return false;
+        }
+
         function sendCommand() {
             const command = commandBuffer.trim();
             console.log('sendCommand called with command:', command);
@@ -231,24 +273,16 @@
 
         // 加载保存的设置
         function loadSettings() {
-            const fontSizeSlider = document.getElementById('font-size');
-            const fontSizeValue = document.getElementById('font-size-value');
-            const opacitySlider = document.getElementById('opacity');
-            const opacityValue = document.getElementById('opacity-value');
-            
+            // 从本地存储加载设置
             const savedFontSize = localStorage.getItem('fontSize');
             const savedOpacity = localStorage.getItem('opacity');
             
             if (savedFontSize) {
-                fontSizeSlider.value = savedFontSize;
-                fontSizeValue.textContent = savedFontSize;
                 term.options.fontSize = parseInt(savedFontSize);
             }
             
             if (savedOpacity) {
-                opacitySlider.value = savedOpacity;
-                opacityValue.textContent = savedOpacity;
-                document.getElementById('terminal').style.opacity = savedOpacity / 100;
+                document.getElementById('terminal').style.opacity = parseInt(savedOpacity) / 100;
             }
         }
 
@@ -284,48 +318,6 @@
 
             // 显示命令提示符
             term.write('> ');
-
-            // 游戏内设置命令
-            function handleSettingsCommand(command) {
-                const parts = command.split(' ');
-                if (parts.length < 3) {
-                    term.write('用法: settings <fontsize|opacity> <value>\r\n');
-                    return;
-                }
-                
-                const setting = parts[1];
-                const value = parseInt(parts[2]);
-                
-                if (setting === 'fontsize') {
-                    if (value >= 10 && value <= 20) {
-                        term.options.fontSize = value;
-                        fitAddon.fit();
-                        localStorage.setItem('fontSize', value.toString());
-                        term.write(`字体大小已设置为 ${value}\r\n`);
-                    } else {
-                        term.write('字体大小必须在 10-20 之间\r\n');
-                    }
-                } else if (setting === 'opacity') {
-                    if (value >= 50 && value <= 100) {
-                        document.getElementById('terminal').style.opacity = value / 100;
-                        localStorage.setItem('opacity', value.toString());
-                        term.write(`透明度已设置为 ${value}%\r\n`);
-                    } else {
-                        term.write('透明度必须在 50-100 之间\r\n');
-                    }
-                } else {
-                    term.write('未知设置项，可用设置: fontsize, opacity\r\n');
-                }
-            }
-
-            // 扩展命令处理
-            function handleCustomCommand(command) {
-                if (command.startsWith('settings')) {
-                    handleSettingsCommand(command);
-                    return true;
-                }
-                return false;
-            }
 
             // 加载设置
             loadSettings();
