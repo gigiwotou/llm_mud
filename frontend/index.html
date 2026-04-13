@@ -332,12 +332,21 @@
                     // 处理退格键
                     if (commandBuffer.length > 0) {
                         // 从命令缓冲区中删除最后一个字符
-                        // 对于多字节字符（如中文），使用String.prototype.slice可以正确处理
                         const lastChar = commandBuffer.charAt(commandBuffer.length - 1);
                         commandBuffer = commandBuffer.slice(0, -1);
                         
-                        // 发送退格命令
-                        term.write('\b \b');
+                        // 检查字符是否为中文或其他宽字符
+                        // 中文Unicode范围：\u4e00-\u9fff
+                        // 日文假名：\u3040-\u309f, \u30a0-\u30ff
+                        // 韩文：\uac00-\ud7af
+                        const isWideChar = /[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/.test(lastChar);
+                        
+                        // 发送退格命令，宽字符需要发送两个退格
+                        if (isWideChar) {
+                            term.write('\b \b\b \b');
+                        } else {
+                            term.write('\b \b');
+                        }
                     } else {
                         // 清空隐藏输入框
                         hiddenInput.value = '';
@@ -360,8 +369,19 @@
                 } else if (e.domEvent.key === 'Backspace') {
                     // 处理退格键
                     if (commandBuffer.length > 0) {
+                        // 从命令缓冲区中删除最后一个字符
+                        const lastChar = commandBuffer.charAt(commandBuffer.length - 1);
                         commandBuffer = commandBuffer.slice(0, -1);
-                        term.write('\b \b'); // 清除最后一个字符
+                        
+                        // 检查字符是否为中文或其他宽字符
+                        const isWideChar = /[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/.test(lastChar);
+                        
+                        // 发送退格命令，宽字符需要发送两个退格
+                        if (isWideChar) {
+                            term.write('\b \b\b \b');
+                        } else {
+                            term.write('\b \b');
+                        }
                     }
                 } else if (e.domEvent.ctrlKey && e.domEvent.key === 'v') {
                     // 处理Ctrl+V粘贴操作
