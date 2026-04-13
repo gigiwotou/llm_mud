@@ -276,8 +276,12 @@
                         commandBuffer = commandBuffer.slice(0, -1);
                         term.write('\b \b'); // 清除最后一个字符
                     }
-                } else if (char.length === 1 && char.match(/[\x20-\x7E]/)) {
-                    // 处理可打印字符
+                } else if (char.length === 1 && !e.domEvent.ctrlKey && !e.domEvent.metaKey) {
+                    // 处理可打印字符（包括中文），排除控制键
+                    commandBuffer += char;
+                    term.write(char);
+                } else if (char.length > 1 && !e.domEvent.ctrlKey && !e.domEvent.metaKey) {
+                    // 处理多字符输入（如中文），排除控制键
                     commandBuffer += char;
                     term.write(char);
                 }
