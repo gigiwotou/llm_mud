@@ -27,6 +27,14 @@
             flex: 1;
             background-color: #000000;
         }
+        #hiddenInput {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            border: none;
+            outline: none;
+        }
     </style>
 </head>
 <body>
@@ -35,6 +43,8 @@
             <div id="terminal"></div>
         </div>
     </div>
+    <!-- 隐藏的输入框，用于处理中文输入 -->
+    <input type="text" id="hiddenInput" />
 
     <!-- 从CDN加载xterm.js，避免本地文件路径问题 -->
     <script src="https://cdn.jsdelivr.net/npm/xterm@4.18.0/lib/xterm.js"></script>
@@ -46,6 +56,8 @@
         let fitAddon;
         let unicode11Addon;
         let socket;
+        let hiddenInput;
+        let isComposing = false;
 
         // 初始化终端
         function initTerminal() {
@@ -264,22 +276,71 @@
             }
         }
 
+        // 处理输入完成事件
+        function handleInput() {
+            const inputText = hiddenInput.value;
+            if (inputText.length > 0) {
+                commandBuffer += inputText;
+                term.write(inputText);
+                hiddenInput.value = ''; // 清空输入框
+            }
+        }
+
         // 初始化函数
         function init() {
             // 初始化终端
             initTerminal();
             
+            // 获取隐藏输入框
+            hiddenInput = document.getElementById('hiddenInput');
+            
             // 连接WebSocket
             connectWebSocket();
             
+            // 处理隐藏输入框的输入事件
+            hiddenInput.addEventListener('compositionend', () => {
+                isComposing = false;
+                setTimeout(handleInput, 0); // 确保输入完成后触发
+            });
+            
+            hiddenInput.addEventListener('input', () => {
+                if (!isComposing) {
+                    handleInput();
+                }
+            });
+            
+            hiddenInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    // 处理回车键
+                    e.preventDefault();
+                    sendCommand();
+                } else if (e.key === 'Backspace') {
+                    // 处理退格键
+                    if (commandBuffer.length > 0) {
+                        // 从命令缓冲区中删除最后一个字符
+                        // 注意：对于多字节字符（如中文），这里可能需要更复杂的处理
+                        const lastChar = commandBuffer.charAt(commandBuffer.length - 1);
+                        commandBuffer = commandBuffer.slice(0, -1);
+                        
+                        // 对于中文等多字节字符，使用单个退格可能不够
+                        // 这里简单处理，总是发送一个退格
+                        term.write('\b \b');
+                    }
+                }
+            });
+            
             // 启用终端输入
             term.onKey(e => {
+                // 如果正在组合输入，忽略直接的按键事件
+                if (isComposing) {
+                    return;
+                }
+                
                 const char = e.key;
                 
                 if (e.domEvent.key === 'Enter') {
                     // 处理Enter键
                     sendCommand();
-                    term.write('> '); // 显示命令提示符
                 } else if (e.domEvent.key === 'Backspace') {
                     // 处理退格键
                     if (commandBuffer.length > 0) {
@@ -318,8 +379,28 @@
                     term.write(text);
                     return false;
                 }
+                
+                // 处理IME组合事件
+                if (e.type === 'compositionstart') {
+                    isComposing = true;
+                    hiddenInput.focus();
+                } else if (e.type === 'compositionend') {
+                    isComposing = false;
+                }
+                
+                // 当点击终端时，将焦点转移到隐藏输入框
+                if (e.type === 'click') {
+                    hiddenInput.focus();
+                }
+                
                 return true;
             });
+            
+            // 当终端获得焦点时，将焦点转移到隐藏输入框
+            term.element.addEventListener('click', () => {
+                hiddenInput.focus();
+            });
+            
             console.log('Terminal input enabled');
 
             // 显示命令提示符
