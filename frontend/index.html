@@ -360,6 +360,65 @@
                         // 清空隐藏输入框
                         hiddenInput.value = '';
                     }
+                } else if (e.key === 'ArrowUp') {
+                    // 处理上箭头键，显示上一条命令
+                    e.preventDefault();
+                    if (commandHistory.length > 0) {
+                        // 清除当前输入
+                        for (let i = 0; i < commandBuffer.length; i++) {
+                            const char = commandBuffer.charAt(i);
+                            const isWideChar = /[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/.test(char);
+                            if (isWideChar) {
+                                term.write('\b \b\b \b');
+                            } else {
+                                term.write('\b \b');
+                            }
+                        }
+                        
+                        // 移动到上一条命令
+                        if (historyIndex > 0) {
+                            historyIndex--;
+                        }
+                        
+                        // 获取历史命令
+                        const historyCommand = commandHistory[historyIndex];
+                        if (historyCommand) {
+                            commandBuffer = historyCommand;
+                            term.write(historyCommand);
+                        }
+                    }
+                } else if (e.key === 'ArrowDown') {
+                    // 处理下箭头键，显示下一条命令
+                    e.preventDefault();
+                    if (commandHistory.length > 0) {
+                        // 清除当前输入
+                        for (let i = 0; i < commandBuffer.length; i++) {
+                            const char = commandBuffer.charAt(i);
+                            const isWideChar = /[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/.test(char);
+                            if (isWideChar) {
+                                term.write('\b \b\b \b');
+                            } else {
+                                term.write('\b \b');
+                            }
+                        }
+                        
+                        // 移动到下一条命令
+                        if (historyIndex < commandHistory.length - 1) {
+                            historyIndex++;
+                        } else {
+                            // 到达历史记录末尾，清空输入
+                            historyIndex = commandHistory.length;
+                            commandBuffer = '';
+                            return;
+                        }
+                        
+                        // 获取历史命令
+                        const historyCommand = commandHistory[historyIndex];
+                        if (historyCommand) {
+                            commandBuffer = historyCommand;
+                            term.write(historyCommand);
+                        }
+                    }
                 }
             });
             
