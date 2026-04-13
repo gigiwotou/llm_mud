@@ -276,8 +276,18 @@
                         commandBuffer = commandBuffer.slice(0, -1);
                         term.write('\b \b'); // 清除最后一个字符
                     }
+                } else if (e.domEvent.ctrlKey && e.domEvent.key === 'v') {
+                    // 处理Ctrl+V粘贴操作
+                    navigator.clipboard.readText()
+                        .then(text => {
+                            commandBuffer += text;
+                            term.write(text);
+                        })
+                        .catch(err => {
+                            console.error('无法读取剪贴板内容:', err);
+                        });
                 } else if (char.length === 1 && !e.domEvent.ctrlKey && !e.domEvent.metaKey) {
-                    // 处理可打印字符（包括中文），排除控制键
+                    // 处理可打印字符，排除控制键
                     commandBuffer += char;
                     term.write(char);
                 } else if (char.length > 1 && !e.domEvent.ctrlKey && !e.domEvent.metaKey) {
@@ -285,6 +295,20 @@
                     commandBuffer += char;
                     term.write(char);
                 }
+            });
+
+            // 启用剪贴板粘贴
+            term.attachCustomKeyEventHandler(e => {
+                // 处理粘贴事件
+                if (e.type === 'paste') {
+                    e.preventDefault();
+                    const clipboardData = e.clipboardData || window.clipboardData;
+                    const text = clipboardData.getData('text');
+                    commandBuffer += text;
+                    term.write(text);
+                    return false;
+                }
+                return true;
             });
             console.log('Terminal input enabled');
 
