@@ -39,10 +39,12 @@
     <!-- 从CDN加载xterm.js，避免本地文件路径问题 -->
     <script src="https://cdn.jsdelivr.net/npm/xterm@4.18.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-unicode11@0.2.0/lib/xterm-addon-unicode11.js"></script>
     <script>
         // 全局变量
         let term;
         let fitAddon;
+        let unicode11Addon;
         let socket;
 
         // 初始化终端
@@ -54,7 +56,9 @@
                     theme: {
                         background: '#000000',
                         foreground: '#ffffff'
-                    }
+                    },
+                    // 启用unicode支持
+                    allowProposedApi: true
                 });
                 console.log('Terminal created:', term);
 
@@ -63,6 +67,12 @@
                 console.log('FitAddon created:', fitAddon);
                 term.loadAddon(fitAddon);
                 console.log('FitAddon loaded');
+                
+                // 加载Unicode11插件，解决中文问题
+                unicode11Addon = new Unicode11Addon.Unicode11Addon();
+                console.log('Unicode11Addon created:', unicode11Addon);
+                term.loadAddon(unicode11Addon);
+                console.log('Unicode11Addon loaded');
                 
                 const terminalElement = document.getElementById('terminal');
                 console.log('Terminal element:', terminalElement);
