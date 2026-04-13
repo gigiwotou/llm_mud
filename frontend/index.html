@@ -298,14 +298,28 @@
             connectWebSocket();
             
             // 处理隐藏输入框的输入事件
-            hiddenInput.addEventListener('compositionend', () => {
+            hiddenInput.addEventListener('compositionstart', () => {
+                isComposing = true;
+            });
+            
+            hiddenInput.addEventListener('compositionend', (e) => {
                 isComposing = false;
-                setTimeout(handleInput, 0); // 确保输入完成后触发
+                const inputText = e.data || hiddenInput.value;
+                if (inputText.length > 0) {
+                    commandBuffer += inputText;
+                    term.write(inputText);
+                    hiddenInput.value = '';
+                }
             });
             
             hiddenInput.addEventListener('input', () => {
                 if (!isComposing) {
-                    handleInput();
+                    const inputText = hiddenInput.value;
+                    if (inputText.length > 0) {
+                        commandBuffer += inputText;
+                        term.write(inputText);
+                        hiddenInput.value = '';
+                    }
                 }
             });
             
@@ -318,13 +332,15 @@
                     // 处理退格键
                     if (commandBuffer.length > 0) {
                         // 从命令缓冲区中删除最后一个字符
-                        // 注意：对于多字节字符（如中文），这里可能需要更复杂的处理
+                        // 对于多字节字符（如中文），使用String.prototype.slice可以正确处理
                         const lastChar = commandBuffer.charAt(commandBuffer.length - 1);
                         commandBuffer = commandBuffer.slice(0, -1);
                         
-                        // 对于中文等多字节字符，使用单个退格可能不够
-                        // 这里简单处理，总是发送一个退格
+                        // 发送退格命令
                         term.write('\b \b');
+                    } else {
+                        // 清空隐藏输入框
+                        hiddenInput.value = '';
                     }
                 }
             });
@@ -339,7 +355,7 @@
                 const char = e.key;
                 
                 if (e.domEvent.key === 'Enter') {
-                    // 处理Enter键
+                    // 处理回车键
                     sendCommand();
                 } else if (e.domEvent.key === 'Backspace') {
                     // 处理退格键
