@@ -27,35 +27,6 @@
             flex: 1;
             background-color: #000000;
         }
-        #input-area {
-            display: flex;
-            padding: 10px;
-            background-color: #222222;
-            border-top: 1px solid #444444;
-        }
-        #command-input {
-            flex: 1;
-            background-color: #333333;
-            color: #ffffff;
-            border: none;
-            padding: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-        }
-        #command-input:focus {
-            outline: none;
-        }
-        #send-button {
-            background-color: #555555;
-            color: #ffffff;
-            border: none;
-            padding: 0 15px;
-            margin-left: 10px;
-            cursor: pointer;
-        }
-        #send-button:hover {
-            background-color: #666666;
-        }
         #sidebar {
             width: 300px;
             background-color: #1a1a1a;
@@ -142,10 +113,6 @@
     <div id="game-container">
         <div id="main-content">
             <div id="terminal"></div>
-            <div id="input-area">
-                <input type="text" id="command-input" placeholder="Enter command...">
-                <button id="send-button">Send</button>
-            </div>
         </div>
         <div id="sidebar">
             <div class="tab-buttons">
@@ -283,6 +250,8 @@
                     term.write(formattedMessage + '\r\n');
                     // 解析消息，更新状态面板
                     updateStatusPanel(event.data);
+                    // 显示命令提示符
+                    term.write('> ');
                 };
 
                 socket.onclose = function(event) {
@@ -304,21 +273,24 @@
         }
 
         // 处理命令输入
+        let commandBuffer = '';
+
         function sendCommand() {
-            const commandInput = document.getElementById('command-input');
-            const command = commandInput.value.trim();
+            const command = commandBuffer.trim();
             console.log('sendCommand called with command:', command);
             if (command && socket && socket.readyState === WebSocket.OPEN) {
                 console.log('Sending command:', command);
-                term.write('> ' + command + '\r\n');
+                term.write('\r\n'); // 换行
                 socket.send(command);
-                commandInput.value = '';
+                commandBuffer = '';
             } else if (!socket) {
                 console.error('Socket not initialized');
-                term.write('Error: Socket not initialized\r\n');
+                term.write('\r\nError: Socket not initialized\r\n> ');
+                commandBuffer = '';
             } else if (socket.readyState !== WebSocket.OPEN) {
                 console.error('Socket not open, readyState:', socket.readyState);
-                term.write('Error: Socket not connected\r\n');
+                term.write('\r\nError: Socket not connected\r\n> ');
+                commandBuffer = '';
             }
         }
 
@@ -392,23 +364,30 @@
             // 连接WebSocket
             connectWebSocket();
             
-            // 处理命令输入
-            const commandInput = document.getElementById('command-input');
-            const sendButton = document.getElementById('send-button');
-
-            console.log('Command input element:', commandInput);
-            console.log('Send button element:', sendButton);
-
-            sendButton.addEventListener('click', sendCommand);
-            console.log('Click listener added');
-
-            commandInput.addEventListener('keypress', function(e) {
-                console.log('Keypress event:', e);
-                if (e.key === 'Enter') {
+            // 启用终端输入
+            term.onKey(e => {
+                const char = e.key;
+                
+                if (e.domEvent.key === 'Enter') {
+                    // 处理Enter键
                     sendCommand();
+                    term.write('> '); // 显示命令提示符
+                } else if (e.domEvent.key === 'Backspace') {
+                    // 处理退格键
+                    if (commandBuffer.length > 0) {
+                        commandBuffer = commandBuffer.slice(0, -1);
+                        term.write('\b \b'); // 清除最后一个字符
+                    }
+                } else if (char.length === 1 && char.match(/[\x20-\x7E]/)) {
+                    // 处理可打印字符
+                    commandBuffer += char;
+                    term.write(char);
                 }
             });
-            console.log('Keypress listener added');
+            console.log('Terminal input enabled');
+
+            // 显示命令提示符
+            term.write('> ');
 
             // 标签页切换
             const tabButtons = document.querySelectorAll('.tab-button');
