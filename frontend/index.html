@@ -183,6 +183,8 @@
 
         // 处理命令输入
         let commandBuffer = '';
+        let commandHistory = [];
+        let historyIndex = -1;
 
         // 游戏内设置命令
         function handleSettingsCommand(command) {
@@ -230,6 +232,13 @@
             const command = commandBuffer.trim();
             console.log('sendCommand called with command:', command);
             if (command) {
+                // 将命令添加到历史记录
+                if (commandHistory.length === 0 || commandHistory[commandHistory.length - 1] !== command) {
+                    commandHistory.push(command);
+                }
+                // 重置历史索引
+                historyIndex = commandHistory.length;
+                
                 // 检查是否是自定义命令
                 if (handleCustomCommand(command)) {
                     // 自定义命令已在前端处理
@@ -381,6 +390,64 @@
                             term.write('\b \b\b \b');
                         } else {
                             term.write('\b \b');
+                        }
+                    }
+                } else if (e.domEvent.key === 'ArrowUp') {
+                    // 处理上箭头键，显示上一条命令
+                    if (commandHistory.length > 0) {
+                        // 清除当前输入
+                        for (let i = 0; i < commandBuffer.length; i++) {
+                            const char = commandBuffer.charAt(i);
+                            const isWideChar = /[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/.test(char);
+                            if (isWideChar) {
+                                term.write('\b \b\b \b');
+                            } else {
+                                term.write('\b \b');
+                            }
+                        }
+                        
+                        // 移动到上一条命令
+                        if (historyIndex > 0) {
+                            historyIndex--;
+                        }
+                        
+                        // 获取历史命令
+                        const historyCommand = commandHistory[historyIndex];
+                        if (historyCommand) {
+                            commandBuffer = historyCommand;
+                            term.write(historyCommand);
+                        }
+                    }
+                } else if (e.domEvent.key === 'ArrowDown') {
+                    // 处理下箭头键，显示下一条命令
+                    if (commandHistory.length > 0) {
+                        // 清除当前输入
+                        for (let i = 0; i < commandBuffer.length; i++) {
+                            const char = commandBuffer.charAt(i);
+                            const isWideChar = /[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/.test(char);
+                            if (isWideChar) {
+                                term.write('\b \b\b \b');
+                            } else {
+                                term.write('\b \b');
+                            }
+                        }
+                        
+                        // 移动到下一条命令
+                        if (historyIndex < commandHistory.length - 1) {
+                            historyIndex++;
+                        } else {
+                            // 到达历史记录末尾，清空输入
+                            historyIndex = commandHistory.length;
+                            commandBuffer = '';
+                            term.write('');
+                            return;
+                        }
+                        
+                        // 获取历史命令
+                        const historyCommand = commandHistory[historyIndex];
+                        if (historyCommand) {
+                            commandBuffer = historyCommand;
+                            term.write(historyCommand);
                         }
                     }
                 } else if (e.domEvent.ctrlKey && e.domEvent.key === 'v') {
