@@ -393,6 +393,9 @@
                         .catch(err => {
                             console.error('无法读取剪贴板内容:', err);
                         });
+                } else if (e.domEvent.ctrlKey && e.domEvent.key === 'c') {
+                    // 允许默认的复制行为
+                    // 不阻止默认事件，让xterm.js处理复制
                 } else if (char.length === 1 && !e.domEvent.ctrlKey && !e.domEvent.metaKey) {
                     // 处理可打印字符，排除控制键
                     commandBuffer += char;
@@ -404,7 +407,7 @@
                 }
             });
 
-            // 启用剪贴板粘贴
+            // 启用剪贴板操作
             term.attachCustomKeyEventHandler(e => {
                 // 处理粘贴事件
                 if (e.type === 'paste') {
@@ -414,6 +417,12 @@
                     commandBuffer += text;
                     term.write(text);
                     return false;
+                }
+                
+                // 处理复制事件
+                if (e.type === 'copy') {
+                    // 不阻止默认事件，让xterm.js处理复制
+                    return true;
                 }
                 
                 // 处理IME组合事件
@@ -426,15 +435,26 @@
                 
                 // 当点击终端时，将焦点转移到隐藏输入框
                 if (e.type === 'click') {
-                    hiddenInput.focus();
+                    // 只有在没有选择文本时才转移焦点
+                    // 这样用户可以选择文本进行复制
+                    if (!term.hasSelection()) {
+                        hiddenInput.focus();
+                    }
                 }
                 
                 return true;
             });
             
+            // 启用xterm.js的选择和复制功能
+            term.options.disableStdin = false;
+            
             // 当终端获得焦点时，将焦点转移到隐藏输入框
             term.element.addEventListener('click', () => {
-                hiddenInput.focus();
+                // 只有在没有选择文本时才转移焦点
+                // 这样用户可以选择文本进行复制
+                if (!term.hasSelection()) {
+                    hiddenInput.focus();
+                }
             });
             
             console.log('Terminal input enabled');
