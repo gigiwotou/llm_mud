@@ -16,10 +16,10 @@
         #game-container {
             width: 100vw;
             height: 100vh;
-            display: flex;
         }
         #main-content {
-            flex: 1;
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
         }
@@ -27,125 +27,12 @@
             flex: 1;
             background-color: #000000;
         }
-        #sidebar {
-            width: 300px;
-            background-color: #1a1a1a;
-            border-left: 1px solid #444444;
-            display: flex;
-            flex-direction: column;
-        }
-        #sidebar-header {
-            padding: 10px;
-            background-color: #2a2a2a;
-            border-bottom: 1px solid #444444;
-            font-weight: bold;
-            text-align: center;
-        }
-        #sidebar-content {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-        }
-        #status-panel {
-            margin-bottom: 20px;
-        }
-        #status-panel h3 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: #4CAF50;
-        }
-        #status-panel p {
-            margin: 5px 0;
-            font-size: 12px;
-        }
-        #settings-panel h3 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: #2196F3;
-        }
-        #settings-panel label {
-            display: block;
-            margin: 5px 0;
-            font-size: 12px;
-        }
-        #settings-panel input[type="range"] {
-            width: 100%;
-            margin: 5px 0;
-        }
-        #settings-panel button {
-            margin-top: 10px;
-            background-color: #555555;
-            color: #ffffff;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-        #settings-panel button:hover {
-            background-color: #666666;
-        }
-        .tab-buttons {
-            display: flex;
-            background-color: #2a2a2a;
-            border-bottom: 1px solid #444444;
-        }
-        .tab-button {
-            flex: 1;
-            padding: 10px;
-            background-color: #2a2a2a;
-            color: #ffffff;
-            border: none;
-            cursor: pointer;
-            text-align: center;
-        }
-        .tab-button.active {
-            background-color: #3a3a3a;
-            border-bottom: 2px solid #4CAF50;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
     </style>
 </head>
 <body>
     <div id="game-container">
         <div id="main-content">
             <div id="terminal"></div>
-        </div>
-        <div id="sidebar">
-            <div class="tab-buttons">
-                <button class="tab-button active" data-tab="status">状态</button>
-                <button class="tab-button" data-tab="settings">设置</button>
-            </div>
-            <div id="sidebar-content">
-                <div id="status-tab" class="tab-content active">
-                    <div id="status-panel">
-                        <h3>玩家状态</h3>
-                        <p><strong>名称:</strong> <span id="player-name">未知</span></p>
-                        <p><strong>等级:</strong> <span id="player-level">1</span></p>
-                        <p><strong>生命值:</strong> <span id="player-health">100</span></p>
-                        <p><strong>法力值:</strong> <span id="player-mana">50</span></p>
-                        <p><strong>攻击:</strong> <span id="player-attack">10</span></p>
-                        <p><strong>防御:</strong> <span id="player-defense">5</span></p>
-                    </div>
-                </div>
-                <div id="settings-tab" class="tab-content">
-                    <div id="settings-panel">
-                        <h3>游戏设置</h3>
-                        <label>
-                            字体大小: <span id="font-size-value">14</span>
-                            <input type="range" id="font-size" min="10" max="20" value="14">
-                        </label>
-                        <label>
-                            透明度: <span id="opacity-value">100</span>%
-                            <input type="range" id="opacity" min="50" max="100" value="100">
-                        </label>
-                        <button id="save-settings">保存设置</button>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -278,19 +165,28 @@
         function sendCommand() {
             const command = commandBuffer.trim();
             console.log('sendCommand called with command:', command);
-            if (command && socket && socket.readyState === WebSocket.OPEN) {
-                console.log('Sending command:', command);
-                term.write('\r\n'); // 换行
-                socket.send(command);
-                commandBuffer = '';
-            } else if (!socket) {
-                console.error('Socket not initialized');
-                term.write('\r\nError: Socket not initialized\r\n> ');
-                commandBuffer = '';
-            } else if (socket.readyState !== WebSocket.OPEN) {
-                console.error('Socket not open, readyState:', socket.readyState);
-                term.write('\r\nError: Socket not connected\r\n> ');
-                commandBuffer = '';
+            if (command) {
+                // 检查是否是自定义命令
+                if (handleCustomCommand(command)) {
+                    // 自定义命令已在前端处理
+                    term.write('> '); // 显示命令提示符
+                } else if (socket && socket.readyState === WebSocket.OPEN) {
+                    console.log('Sending command:', command);
+                    term.write('\r\n'); // 换行
+                    socket.send(command);
+                    commandBuffer = '';
+                } else if (!socket) {
+                    console.error('Socket not initialized');
+                    term.write('\r\nError: Socket not initialized\r\n> ');
+                    commandBuffer = '';
+                } else if (socket.readyState !== WebSocket.OPEN) {
+                    console.error('Socket not open, readyState:', socket.readyState);
+                    term.write('\r\nError: Socket not connected\r\n> ');
+                    commandBuffer = '';
+                }
+            } else {
+                // 空命令，只显示命令提示符
+                term.write('> ');
             }
         }
 
@@ -389,50 +285,47 @@
             // 显示命令提示符
             term.write('> ');
 
-            // 标签页切换
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const tabContents = document.querySelectorAll('.tab-content');
+            // 游戏内设置命令
+            function handleSettingsCommand(command) {
+                const parts = command.split(' ');
+                if (parts.length < 3) {
+                    term.write('用法: settings <fontsize|opacity> <value>\r\n');
+                    return;
+                }
+                
+                const setting = parts[1];
+                const value = parseInt(parts[2]);
+                
+                if (setting === 'fontsize') {
+                    if (value >= 10 && value <= 20) {
+                        term.options.fontSize = value;
+                        fitAddon.fit();
+                        localStorage.setItem('fontSize', value.toString());
+                        term.write(`字体大小已设置为 ${value}\r\n`);
+                    } else {
+                        term.write('字体大小必须在 10-20 之间\r\n');
+                    }
+                } else if (setting === 'opacity') {
+                    if (value >= 50 && value <= 100) {
+                        document.getElementById('terminal').style.opacity = value / 100;
+                        localStorage.setItem('opacity', value.toString());
+                        term.write(`透明度已设置为 ${value}%\r\n`);
+                    } else {
+                        term.write('透明度必须在 50-100 之间\r\n');
+                    }
+                } else {
+                    term.write('未知设置项，可用设置: fontsize, opacity\r\n');
+                }
+            }
 
-            tabButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const tab = button.dataset.tab;
-                    
-                    // 更新标签按钮状态
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    
-                    // 更新标签内容
-                    tabContents.forEach(content => content.classList.remove('active'));
-                    document.getElementById(tab + '-tab').classList.add('active');
-                });
-            });
-
-            // 设置处理
-            const fontSizeSlider = document.getElementById('font-size');
-            const fontSizeValue = document.getElementById('font-size-value');
-            const opacitySlider = document.getElementById('opacity');
-            const opacityValue = document.getElementById('opacity-value');
-            const saveSettingsButton = document.getElementById('save-settings');
-
-            fontSizeSlider.addEventListener('input', () => {
-                const value = fontSizeSlider.value;
-                fontSizeValue.textContent = value;
-                term.options.fontSize = parseInt(value);
-                fitAddon.fit();
-            });
-
-            opacitySlider.addEventListener('input', () => {
-                const value = opacitySlider.value;
-                opacityValue.textContent = value;
-                document.getElementById('terminal').style.opacity = value / 100;
-            });
-
-            saveSettingsButton.addEventListener('click', () => {
-                // 保存设置到本地存储
-                localStorage.setItem('fontSize', fontSizeSlider.value);
-                localStorage.setItem('opacity', opacitySlider.value);
-                term.write('设置已保存\r\n');
-            });
+            // 扩展命令处理
+            function handleCustomCommand(command) {
+                if (command.startsWith('settings')) {
+                    handleSettingsCommand(command);
+                    return true;
+                }
+                return false;
+            }
 
             // 加载设置
             loadSettings();
