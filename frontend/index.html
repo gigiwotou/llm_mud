@@ -278,7 +278,9 @@
 
                 socket.onmessage = function(event) {
                     console.log('Received message:', event.data);
-                    term.write(event.data + '\r\n');
+                    // 将\n替换为\r\n以确保正确的换行和行首定位
+                    const formattedMessage = event.data.replace(/\n/g, '\r\n');
+                    term.write(formattedMessage + '\r\n');
                     // 解析消息，更新状态面板
                     updateStatusPanel(event.data);
                 };
