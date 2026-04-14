@@ -1553,8 +1553,17 @@
                 if (!from.exits) from.exits = [];
                 if (!to.exits) to.exits = [];
                 
-                from.exits.push({ direction: fromDirection, target_room: to.id, description: '' });
-                to.exits.push({ direction: toDirection, target_room: from.id, description: '' });
+                // 检查是否已存在相同方向的出口，避免重复
+                const fromExitExists = from.exits.some(exit => exit.direction === fromDirection);
+                const toExitExists = to.exits.some(exit => exit.direction === toDirection);
+                
+                if (!fromExitExists) {
+                    from.exits.push({ direction: fromDirection, target_room: to.id, description: '' });
+                }
+                
+                if (!toExitExists) {
+                    to.exits.push({ direction: toDirection, target_room: from.id, description: '' });
+                }
                 
                 updateStats();
             }
@@ -1690,7 +1699,43 @@
                         
                         // 重建连接
                         connections = [];
-                        // 这里需要根据房间的exits重建连接，暂时简化处理
+                        
+                        // 根据房间的exits重建连接
+                        nodes.forEach(room => {
+                            if (room.exits) {
+                                room.exits.forEach(exit => {
+                                    // 找到目标房间
+                                    const targetRoom = nodes.find(r => r.id === exit.target_room);
+                                    if (targetRoom && targetRoom !== room) {
+                                        // 检查连接是否已存在
+                                        const connectionExists = connections.some(conn => 
+                                            (conn.from === room && conn.to === targetRoom) || 
+                                            (conn.from === targetRoom && conn.to === room)
+                                        );
+                                        
+                                        if (!connectionExists) {
+                                            // 确定目标房间的反方向
+                                            let reverseDirection;
+                                            switch (exit.direction) {
+                                                case 'north': reverseDirection = 'south'; break;
+                                                case 'south': reverseDirection = 'north'; break;
+                                                case 'east': reverseDirection = 'west'; break;
+                                                case 'west': reverseDirection = 'east'; break;
+                                                default: reverseDirection = 'south';
+                                            }
+                                            
+                                            // 创建连接
+                                            connections.push({
+                                                from: room,
+                                                to: targetRoom,
+                                                fromDirection: exit.direction,
+                                                toDirection: reverseDirection
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                        });
                         
                         selectNode(null);
                         selectRegion(null);
@@ -2093,17 +2138,37 @@
                     environment: room.env,
                     isSafe: room.safe,
                     colorIndex: i,
-                    exits: []
+                    exits: [],
+                    region_id: 'region_1'
                 });
             });
             
-            const pairs = [
-                [0, 1], [0, 2], [0, 4], [0, 6],
-                [1, 3], [2, 5], [2, 6], [5, 3]
+            // 确保至少有一个区域
+            if (world.regions.length === 0) {
+                addRegion();
+            }
+            
+            // 为每个房间设置区域ID
+            nodes.forEach(node => {
+                node.region_id = world.regions[0].id;
+            });
+            
+            // 为区域添加房间
+            world.regions[0].rooms = nodes;
+            
+            const connections = [
+                { from: 0, to: 1, fromDir: 'east', toDir: 'west' },
+                { from: 0, to: 2, fromDir: 'south', toDir: 'north' },
+                { from: 0, to: 4, fromDir: 'west', toDir: 'east' },
+                { from: 0, to: 6, fromDir: 'north', toDir: 'south' },
+                { from: 1, to: 3, fromDir: 'east', toDir: 'west' },
+                { from: 2, to: 5, fromDir: 'south', toDir: 'north' },
+                { from: 2, to: 6, fromDir: 'north', toDir: 'south' },
+                { from: 5, to: 3, fromDir: 'east', toDir: 'west' }
             ];
             
-            pairs.forEach(([a, b]) => {
-                addConnection(nodes[a], nodes[b]);
+            connections.forEach(conn => {
+                addConnection(nodes[conn.from], nodes[conn.to], conn.fromDir, conn.toDir);
             });
             
             updateNodeList();
