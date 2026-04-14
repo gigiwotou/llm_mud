@@ -416,6 +416,14 @@
             
             <div class="sidebar-content">
                 <div class="section">
+                    <div class="section-title">区域管理</div>
+                    <button class="btn btn-primary" onclick="addRegion()">
+                        添加区域
+                    </button>
+                    <div class="node-list" id="regionList" style="margin-top: 10px;"></div>
+                </div>
+                
+                <div class="section">
                 <div class="section-title">操作</div>
                 <button class="btn btn-primary" onclick="addNode()">
                     添加房间
@@ -437,54 +445,118 @@
             </div>
                 
                 <div class="section" id="propertyPanel" style="display: none;">
-                    <div class="section-title">节点属性</div>
-                    <div class="form-group">
-                        <label>房间ID</label>
-                        <input type="text" id="propId" placeholder="room_001">
+                    <div class="section-title" id="panelTitle">节点属性</div>
+                    
+                    <!-- 区域属性 -->
+                    <div id="regionProperties" style="display: none;">
+                        <div class="form-group">
+                            <label>区域ID</label>
+                            <input type="text" id="propRegionId" placeholder="region_001">
+                        </div>
+                        <div class="form-group">
+                            <label>区域名称</label>
+                            <input type="text" id="propRegionName" placeholder="新手村区域">
+                        </div>
+                        <div class="form-group">
+                            <label>区域描述</label>
+                            <textarea id="propRegionDesc" placeholder="区域描述..."></textarea>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="updateRegionProperties()">
+                                应用
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteSelectedRegion()">
+                                删除
+                            </button>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>房间名称</label>
-                        <input type="text" id="propName" placeholder="村庄广场">
-                    </div>
-                    <div class="form-group">
-                        <label>描述</label>
-                        <textarea id="propDesc" placeholder="房间描述..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>等级</label>
-                        <input type="number" id="propLevel" value="1" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label>环境类型</label>
-                        <select id="propEnv">
-                            <option value="village">村庄</option>
-                            <option value="forest">森林</option>
-                            <option value="mountain">山脉</option>
-                            <option value="cave">洞穴</option>
-                            <option value="city">城市</option>
-                            <option value="temple">寺庙</option>
-                            <option value="dungeon">地牢</option>
-                            <option value="plains">平原</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>安全区域</label>
-                        <select id="propSafe">
-                            <option value="true">是</option>
-                            <option value="false">否</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>节点颜色</label>
-                        <div class="color-picker" id="colorPicker"></div>
-                    </div>
-                    <div class="btn-group">
-                        <button class="btn btn-primary" onclick="updateNodeProperties()">
-                            应用
-                        </button>
-                        <button class="btn btn-danger" onclick="deleteSelectedNode()">
-                            删除
-                        </button>
+                    
+                    <!-- 房间属性 -->
+                    <div id="roomProperties">
+                        <div class="form-group">
+                            <label>房间ID</label>
+                            <input type="text" id="propId" placeholder="room_001">
+                        </div>
+                        <div class="form-group">
+                            <label>房间名称</label>
+                            <input type="text" id="propName" placeholder="村庄广场">
+                        </div>
+                        <div class="form-group">
+                            <label>描述</label>
+                            <textarea id="propDesc" placeholder="房间描述..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>等级</label>
+                            <input type="number" id="propLevel" value="1" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>环境类型</label>
+                            <select id="propEnv">
+                                <option value="village">村庄</option>
+                                <option value="forest">森林</option>
+                                <option value="mountain">山脉</option>
+                                <option value="cave">洞穴</option>
+                                <option value="city">城市</option>
+                                <option value="temple">寺庙</option>
+                                <option value="dungeon">地牢</option>
+                                <option value="plains">平原</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>安全区域</label>
+                            <select id="propSafe">
+                                <option value="true">是</option>
+                                <option value="false">否</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>节点颜色</label>
+                            <div class="color-picker" id="colorPicker"></div>
+                        </div>
+                        
+                        <!-- 房间内事物 -->
+                        <div class="section" style="margin-top: 20px;">
+                            <div class="section-title">房间内事物</div>
+                            
+                            <!-- NPC管理 -->
+                            <div class="form-group">
+                                <label>NPC</label>
+                                <div class="btn-group">
+                                    <button class="btn btn-secondary" onclick="addNpc()">添加NPC</button>
+                                    <button class="btn btn-secondary" onclick="editNpcs()">编辑NPC</button>
+                                </div>
+                                <div id="npcList" style="margin-top: 8px;"></div>
+                            </div>
+                            
+                            <!-- 物品管理 -->
+                            <div class="form-group">
+                                <label>物品</label>
+                                <div class="btn-group">
+                                    <button class="btn btn-secondary" onclick="addItem()">添加物品</button>
+                                    <button class="btn btn-secondary" onclick="editItems()">编辑物品</button>
+                                </div>
+                                <div id="itemList" style="margin-top: 8px;"></div>
+                            </div>
+                            
+                            <!-- 建筑管理 -->
+                            <div class="form-group">
+                                <label>建筑</label>
+                                <div class="btn-group">
+                                    <button class="btn btn-secondary" onclick="addBuilding()">添加建筑</button>
+                                    <button class="btn btn-secondary" onclick="editBuildings()">编辑建筑</button>
+                                </div>
+                                <div id="buildingList" style="margin-top: 8px;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="updateNodeProperties()">
+                                应用
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteSelectedNode()">
+                                删除
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -528,6 +600,10 @@
             <div class="info-panel">
                 <h3>统计</h3>
                 <div class="info-item">
+                    <span>区域</span>
+                    <span id="statRegions">0</span>
+                </div>
+                <div class="info-item">
                     <span>房间</span>
                     <span id="statNodes">0</span>
                 </div>
@@ -549,6 +625,13 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         
+        let world = {
+            regions: [],
+            global_items: [],
+            global_npcs: [],
+            global_tasks: []
+        };
+        let selectedRegion = null;
         let nodes = [];
         let connections = [];
         let selectedNode = null;
@@ -904,7 +987,90 @@
             }
         }
         
+        function addRegion() {
+            const id = 'region_' + (world.regions.length + 1);
+            const region = {
+                id: id,
+                name: '区域 ' + (world.regions.length + 1),
+                description: '',
+                rooms: [],
+                npcs: [],
+                items: []
+            };
+            world.regions.push(region);
+            selectRegion(region);
+            updateRegionList();
+            updateStats();
+        }
+        
+        function selectRegion(region) {
+            selectedRegion = region;
+            selectedNode = null;
+            const panel = document.getElementById('propertyPanel');
+            
+            if (region) {
+                panel.style.display = 'block';
+                document.getElementById('panelTitle').textContent = '区域属性';
+                document.getElementById('regionProperties').style.display = 'block';
+                document.getElementById('roomProperties').style.display = 'none';
+                
+                document.getElementById('propRegionId').value = region.id;
+                document.getElementById('propRegionName').value = region.name;
+                document.getElementById('propRegionDesc').value = region.description;
+            } else {
+                panel.style.display = 'none';
+            }
+            
+            updateRegionList();
+            updateNodeList();
+            render();
+        }
+        
+        function updateRegionProperties() {
+            if (!selectedRegion) return;
+            
+            selectedRegion.id = document.getElementById('propRegionId').value;
+            selectedRegion.name = document.getElementById('propRegionName').value;
+            selectedRegion.description = document.getElementById('propRegionDesc').value;
+            
+            updateRegionList();
+        }
+        
+        function deleteSelectedRegion() {
+            if (!selectedRegion) return;
+            
+            world.regions = world.regions.filter(r => r !== selectedRegion);
+            if (selectedRegion === selectedRegion) {
+                selectedRegion = null;
+            }
+            selectRegion(null);
+            updateRegionList();
+            updateStats();
+            render();
+        }
+        
+        function updateRegionList() {
+            const list = document.getElementById('regionList');
+            list.innerHTML = '';
+            
+            world.regions.forEach(region => {
+                const item = document.createElement('div');
+                item.className = 'node-list-item' + (region === selectedRegion ? ' selected' : '');
+                item.innerHTML = `
+                    <div class="node-list-item-name">🌍 ${region.name}</div>
+                    <div class="node-list-item-id">${region.id}</div>
+                `;
+                item.onclick = () => selectRegion(region);
+                list.appendChild(item);
+            });
+        }
+        
         function addNode() {
+            if (!selectedRegion) {
+                alert('请先选择一个区域');
+                return;
+            }
+            
             const id = 'room_' + (nodes.length + 1);
             const node = {
                 id: id,
@@ -916,9 +1082,14 @@
                 environment: 'village',
                 isSafe: true,
                 colorIndex: nodes.length % nodeColors.length,
-                exits: []
+                exits: [],
+                npcs: [],
+                items: [],
+                buildings: [],
+                region_id: selectedRegion.id
             };
             nodes.push(node);
+            selectedRegion.rooms.push(node);
             selectNode(node);
             updateNodeList();
             updateStats();
@@ -927,10 +1098,15 @@
         
         function selectNode(node) {
             selectedNode = node;
+            selectedRegion = null;
             const panel = document.getElementById('propertyPanel');
             
             if (node) {
                 panel.style.display = 'block';
+                document.getElementById('panelTitle').textContent = '房间属性';
+                document.getElementById('regionProperties').style.display = 'none';
+                document.getElementById('roomProperties').style.display = 'block';
+                
                 document.getElementById('propId').value = node.id;
                 document.getElementById('propName').value = node.name;
                 document.getElementById('propDesc').value = node.description;
@@ -942,12 +1118,117 @@
                 options.forEach((opt, i) => {
                     opt.classList.toggle('selected', i === node.colorIndex);
                 });
+                
+                // 更新房间内事物列表
+                updateRoomThings();
             } else {
                 panel.style.display = 'none';
             }
             
+            updateRegionList();
             updateNodeList();
             render();
+        }
+        
+        function updateRoomThings() {
+            if (!selectedNode) return;
+            
+            // 更新NPC列表
+            const npcList = document.getElementById('npcList');
+            npcList.innerHTML = '';
+            selectedNode.npcs.forEach(npc => {
+                const item = document.createElement('div');
+                item.className = 'node-list-item';
+                item.innerHTML = `
+                    <div class="node-list-item-name">👤 ${npc.name}</div>
+                    <div class="node-list-item-id">${npc.id}</div>
+                `;
+                npcList.appendChild(item);
+            });
+            
+            // 更新物品列表
+            const itemList = document.getElementById('itemList');
+            itemList.innerHTML = '';
+            selectedNode.items.forEach(item => {
+                const listItem = document.createElement('div');
+                listItem.className = 'node-list-item';
+                listItem.innerHTML = `
+                    <div class="node-list-item-name">🎒 ${item.name}</div>
+                    <div class="node-list-item-id">${item.id}</div>
+                `;
+                itemList.appendChild(listItem);
+            });
+            
+            // 更新建筑列表
+            const buildingList = document.getElementById('buildingList');
+            buildingList.innerHTML = '';
+            (selectedNode.buildings || []).forEach(building => {
+                const item = document.createElement('div');
+                item.className = 'node-list-item';
+                item.innerHTML = `
+                    <div class="node-list-item-name">🏠 ${building.name}</div>
+                    <div class="node-list-item-id">${building.id}</div>
+                `;
+                buildingList.appendChild(item);
+            });
+        }
+        
+        // 房间内事物管理函数
+        function addNpc() {
+            if (!selectedNode) return;
+            const id = 'npc_' + (selectedNode.npcs.length + 1);
+            const npc = {
+                id: id,
+                name: 'NPC ' + (selectedNode.npcs.length + 1),
+                description: '',
+                dialogues: [],
+                quests: []
+            };
+            selectedNode.npcs.push(npc);
+            updateRoomThings();
+        }
+        
+        function addItem() {
+            if (!selectedNode) return;
+            const id = 'item_' + (selectedNode.items.length + 1);
+            const item = {
+                id: id,
+                name: '物品 ' + (selectedNode.items.length + 1),
+                description: '',
+                type: 'normal',
+                value: 1
+            };
+            selectedNode.items.push(item);
+            updateRoomThings();
+        }
+        
+        function addBuilding() {
+            if (!selectedNode) return;
+            if (!selectedNode.buildings) selectedNode.buildings = [];
+            const id = 'building_' + (selectedNode.buildings.length + 1);
+            const building = {
+                id: id,
+                name: '建筑 ' + (selectedNode.buildings.length + 1),
+                description: '',
+                type: 'house'
+            };
+            selectedNode.buildings.push(building);
+            updateRoomThings();
+        }
+        
+        function editNpcs() {
+            if (!selectedNode) return;
+            alert('NPC编辑功能开发中');
+        }
+        
+        function editItems() {
+            if (!selectedNode) return;
+            alert('物品编辑功能开发中');
+        }
+        
+        function editBuildings() {
+            if (!selectedNode) return;
+            alert('建筑编辑功能开发中');
         }
         
         function updateNodeProperties() {
@@ -970,6 +1251,11 @@
             connections = connections.filter(conn => 
                 conn.from !== selectedNode && conn.to !== selectedNode
             );
+            
+            // 从对应的区域中删除房间
+            world.regions.forEach(region => {
+                region.rooms = region.rooms.filter(room => room !== selectedNode);
+            });
             
             nodes = nodes.filter(n => n !== selectedNode);
             selectNode(null);
@@ -1050,16 +1336,30 @@
             document.getElementById('statNodes').textContent = nodes.length;
             document.getElementById('statConnections').textContent = connections.length;
             document.getElementById('statZoom').textContent = Math.round(zoom * 100) + '%';
+            // 添加区域数量统计
+            const regionCountElement = document.getElementById('statRegions');
+            if (regionCountElement) {
+                regionCountElement.textContent = world.regions.length;
+            }
         }
         
         function clearCanvas() {
-            if (confirm('确定要清空所有节点吗？')) {
+            if (confirm('确定要清空所有数据吗？')) {
+                // 清空世界数据
+                world = {
+                    regions: [],
+                    global_items: [],
+                    global_npcs: [],
+                    global_tasks: []
+                };
                 nodes = [];
                 connections = [];
                 selectedNode = null;
+                selectedRegion = null;
                 connectingFrom = null;
                 tempConnection = null;
                 document.getElementById('propertyPanel').style.display = 'none';
+                updateRegionList();
                 updateNodeList();
                 updateStats();
                 render();
@@ -1067,25 +1367,16 @@
         }
         
         function saveWorld() {
+            // 确保所有房间都在对应的区域中
+            world.regions.forEach(region => {
+                region.rooms = nodes.filter(node => node.region_id === region.id);
+            });
+            
             const worldData = {
-                nodes: nodes.map(n => ({
-                    id: n.id,
-                    name: n.name,
-                    description: n.description,
-                    x: n.x,
-                    y: n.y,
-                    level: n.level,
-                    environment: n.environment,
-                    isSafe: n.isSafe,
-                    colorIndex: n.colorIndex,
-                    exits: n.exits || []
-                })),
-                connections: connections.map(c => ({
-                    from: c.from.id,
-                    to: c.to.id,
-                    fromDirection: c.fromDirection,
-                    toDirection: c.toDirection
-                }))
+                regions: world.regions,
+                global_items: world.global_items,
+                global_npcs: world.global_npcs,
+                global_tasks: world.global_tasks
             };
             
             const json = JSON.stringify(worldData, null, 2);
@@ -1108,18 +1399,30 @@
                 reader.onload = (e) => {
                     try {
                         const data = JSON.parse(e.target.result);
-                        nodes = data.nodes.map(n => ({
-                            ...n,
-                            exits: n.exits || []
-                        }));
-                        connections = data.connections.map(c => ({
-                            from: nodes.find(n => n.id === c.from),
-                            to: nodes.find(n => n.id === c.to),
-                            fromDirection: c.fromDirection || 'east',
-                            toDirection: c.toDirection || 'west'
-                        })).filter(c => c.from && c.to);
+                        
+                        // 加载世界数据
+                        world = {
+                            regions: data.regions || [],
+                            global_items: data.global_items || [],
+                            global_npcs: data.global_npcs || [],
+                            global_tasks: data.global_tasks || []
+                        };
+                        
+                        // 提取所有房间到nodes数组
+                        nodes = [];
+                        world.regions.forEach(region => {
+                            region.rooms.forEach(room => {
+                                nodes.push(room);
+                            });
+                        });
+                        
+                        // 重建连接
+                        connections = [];
+                        // 这里需要根据房间的exits重建连接，暂时简化处理
                         
                         selectNode(null);
+                        selectRegion(null);
+                        updateRegionList();
                         updateNodeList();
                         updateStats();
                         render();
@@ -1281,7 +1584,12 @@
             nodes.forEach(node => {
                 const isSelected = node === selectedNode;
                 const isConnecting = node === connectingFrom;
+                
+                // 获取区域信息
+                const region = world.regions.find(r => r.id === node.region_id);
+                const regionColor = region ? getRegionColor(region.id) : nodeColors[node.colorIndex];
                 const color = nodeColors[node.colorIndex];
+                
                 const size = 76;
                 const halfSize = size / 2;
                 const cornerRadius = 14;
@@ -1300,6 +1608,16 @@
                     ctx.beginPath();
                     ctx.arc(node.x, node.y, size * 0.7, 0, Math.PI * 2);
                     ctx.fill();
+                }
+                
+                // 绘制区域标识边框
+                if (region) {
+                    ctx.strokeStyle = regionColor;
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([4, 2]);
+                    roundRect(ctx, node.x - halfSize - 4, node.y - halfSize - 4, size + 8, size + 8, cornerRadius + 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
                 }
                 
                 // 绘制主体 - 现代渐变效果
@@ -1358,6 +1676,16 @@
                 drawConnector(node.x, node.y + halfSize, 'south', node, isSelected, isConnecting, connectorRadius, connectorHoverRadius);
                 drawConnector(node.x - halfSize, node.y, 'west', node, isSelected, isConnecting, connectorRadius, connectorHoverRadius);
                 
+                // 绘制区域标识
+                if (region) {
+                    ctx.font = '600 8px system-ui, -apple-system, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    ctx.fillStyle = regionColor;
+                    const regionName = region.name.length > 8 ? region.name.substring(0, 8) + '…' : region.name;
+                    ctx.fillText(regionName, node.x, node.y - halfSize - 12);
+                }
+                
                 // 绘制房间信息 - 现代排版
                 ctx.font = '26px system-ui, -apple-system, sans-serif';
                 ctx.textAlign = 'center';
@@ -1382,6 +1710,17 @@
                     ctx.fillText('Lv' + node.level, node.x - 28, node.y - 24);
                 }
             });
+        }
+        
+        // 根据区域ID获取颜色
+        function getRegionColor(regionId) {
+            // 使用区域ID的哈希值生成一致的颜色
+            let hash = 0;
+            for (let i = 0; i < regionId.length; i++) {
+                hash = regionId.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const index = Math.abs(hash) % nodeColors.length;
+            return nodeColors[index];
         }
         
         function drawConnector(x, y, direction, node, isSelected, isConnecting, radius, hoverRadius) {
