@@ -1098,7 +1098,15 @@
         
         function selectNode(node) {
             selectedNode = node;
-            selectedRegion = null;
+            
+            // 保持区域选中状态，如果房间属于某个区域
+            if (node && node.region_id) {
+                const region = world.regions.find(r => r.id === node.region_id);
+                if (region) {
+                    selectedRegion = region;
+                }
+            }
+            
             const panel = document.getElementById('propertyPanel');
             
             if (node) {
