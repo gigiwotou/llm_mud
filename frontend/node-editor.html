@@ -670,6 +670,7 @@
             window.addEventListener('resize', resizeCanvas);
             setupEventListeners();
             initColorPicker();
+            initEditDialog();
             render();
         }
         
@@ -1224,19 +1225,284 @@
             updateRoomThings();
         }
         
+        // 编辑对话框HTML
+        const editDialogHTML = `
+            <div id="editDialog" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000;">
+                <div style="background: var(--bg); border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 id="dialogTitle" style="font-size: 1.1rem; font-weight: 600;"></h3>
+                        <button onclick="closeEditDialog()" style="background: none; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer;">&times;</button>
+                    </div>
+                    <div id="dialogContent">
+                        <!-- 动态内容将在这里生成 -->
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end;">
+                        <button onclick="closeEditDialog()" class="btn btn-secondary" style="flex: 1;">取消</button>
+                        <button onclick="saveEdit()" class="btn btn-primary" style="flex: 1;">保存</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 初始化编辑对话框
+        function initEditDialog() {
+            const dialog = document.createElement('div');
+            dialog.innerHTML = editDialogHTML;
+            document.body.appendChild(dialog.firstChild);
+        }
+        
+        // 打开编辑对话框
+        function openEditDialog(title, content, data, type, index) {
+            const dialog = document.getElementById('editDialog');
+            document.getElementById('dialogTitle').textContent = title;
+            document.getElementById('dialogContent').innerHTML = content;
+            
+            // 存储当前编辑的数据
+            dialog.dataset.type = type;
+            dialog.dataset.index = index;
+            dialog.dataset.data = JSON.stringify(data);
+            
+            dialog.style.display = 'flex';
+        }
+        
+        // 关闭编辑对话框
+        function closeEditDialog() {
+            document.getElementById('editDialog').style.display = 'none';
+        }
+        
+        // 保存编辑内容
+        function saveEdit() {
+            const dialog = document.getElementById('editDialog');
+            const type = dialog.dataset.type;
+            const index = parseInt(dialog.dataset.index);
+            const originalData = JSON.parse(dialog.dataset.data);
+            
+            // 收集表单数据
+            const formData = {};
+            document.querySelectorAll('#dialogContent input, #dialogContent select, #dialogContent textarea').forEach(input => {
+                formData[input.name] = input.value;
+            });
+            
+            // 根据类型更新数据
+            switch (type) {
+                case 'npc':
+                    if (selectedNode && selectedNode.npcs[index]) {
+                        Object.assign(selectedNode.npcs[index], formData);
+                    }
+                    break;
+                case 'item':
+                    if (selectedNode && selectedNode.items[index]) {
+                        Object.assign(selectedNode.items[index], formData);
+                    }
+                    break;
+                case 'building':
+                    if (selectedNode && selectedNode.buildings && selectedNode.buildings[index]) {
+                        Object.assign(selectedNode.buildings[index], formData);
+                    }
+                    break;
+            }
+            
+            updateRoomThings();
+            closeEditDialog();
+        }
+        
+        // 删除事物
+        function deleteThing(type, index) {
+            if (!selectedNode) return;
+            
+            if (confirm('确定要删除这个' + (type === 'npc' ? 'NPC' : type === 'item' ? '物品' : '建筑') + '吗？')) {
+                switch (type) {
+                    case 'npc':
+                        selectedNode.npcs.splice(index, 1);
+                        break;
+                    case 'item':
+                        selectedNode.items.splice(index, 1);
+                        break;
+                    case 'building':
+                        if (selectedNode.buildings) {
+                            selectedNode.buildings.splice(index, 1);
+                        }
+                        break;
+                }
+                updateRoomThings();
+            }
+        }
+        
+        // 编辑NPC
         function editNpcs() {
             if (!selectedNode) return;
-            alert('NPC编辑功能开发中');
+            
+            if (selectedNode.npcs.length === 0) {
+                alert('当前房间没有NPC');
+                return;
+            }
+            
+            let content = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+            selectedNode.npcs.forEach((npc, index) => {
+                content += `
+                    <div style="padding: 12px; background: var(--bg-elevated); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 500; margin-bottom: 4px;">${npc.name}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">${npc.id}</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="openNpcEdit(${index})" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">编辑</button>
+                            <button onclick="deleteThing('npc', ${index})" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            content += '</div>';
+            
+            openEditDialog('编辑NPC', content, null, 'npc', -1);
         }
         
+        // 打开NPC编辑表单
+        function openNpcEdit(index) {
+            const npc = selectedNode.npcs[index];
+            const content = `
+                <div class="form-group">
+                    <label>NPC ID</label>
+                    <input type="text" name="id" value="${npc.id}" placeholder="npc_001">
+                </div>
+                <div class="form-group">
+                    <label>NPC名称</label>
+                    <input type="text" name="name" value="${npc.name}" placeholder="村民">
+                </div>
+                <div class="form-group">
+                    <label>描述</label>
+                    <textarea name="description" placeholder="NPC描述...">${npc.description || ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>类型</label>
+                    <select name="type">
+                        <option value="normal" ${(npc.type || 'normal') === 'normal' ? 'selected' : ''}>普通</option>
+                        <option value="vendor" ${(npc.type || 'normal') === 'vendor' ? 'selected' : ''}>商人</option>
+                        <option value="quest_giver" ${(npc.type || 'normal') === 'quest_giver' ? 'selected' : ''}>任务发布者</option>
+                    </select>
+                </div>
+            `;
+            openEditDialog('编辑NPC', content, npc, 'npc', index);
+        }
+        
+        // 编辑物品
         function editItems() {
             if (!selectedNode) return;
-            alert('物品编辑功能开发中');
+            
+            if (selectedNode.items.length === 0) {
+                alert('当前房间没有物品');
+                return;
+            }
+            
+            let content = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+            selectedNode.items.forEach((item, index) => {
+                content += `
+                    <div style="padding: 12px; background: var(--bg-elevated); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 500; margin-bottom: 4px;">${item.name}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">${item.id}</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="openItemEdit(${index})" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">编辑</button>
+                            <button onclick="deleteThing('item', ${index})" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            content += '</div>';
+            
+            openEditDialog('编辑物品', content, null, 'item', -1);
         }
         
+        // 打开物品编辑表单
+        function openItemEdit(index) {
+            const item = selectedNode.items[index];
+            const content = `
+                <div class="form-group">
+                    <label>物品ID</label>
+                    <input type="text" name="id" value="${item.id}" placeholder="item_001">
+                </div>
+                <div class="form-group">
+                    <label>物品名称</label>
+                    <input type="text" name="name" value="${item.name}" placeholder="药水">
+                </div>
+                <div class="form-group">
+                    <label>描述</label>
+                    <textarea name="description" placeholder="物品描述...">${item.description || ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>类型</label>
+                    <select name="type">
+                        <option value="normal" ${(item.type || 'normal') === 'normal' ? 'selected' : ''}>普通</option>
+                        <option value="weapon" ${(item.type || 'normal') === 'weapon' ? 'selected' : ''}>武器</option>
+                        <option value="armor" ${(item.type || 'normal') === 'armor' ? 'selected' : ''}> armor</option>
+                        <option value="potion" ${(item.type || 'normal') === 'potion' ? 'selected' : ''}>药水</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>价值</label>
+                    <input type="number" name="value" value="${item.value || 1}" min="0">
+                </div>
+            `;
+            openEditDialog('编辑物品', content, item, 'item', index);
+        }
+        
+        // 编辑建筑
         function editBuildings() {
             if (!selectedNode) return;
-            alert('建筑编辑功能开发中');
+            
+            if (!selectedNode.buildings || selectedNode.buildings.length === 0) {
+                alert('当前房间没有建筑');
+                return;
+            }
+            
+            let content = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+            selectedNode.buildings.forEach((building, index) => {
+                content += `
+                    <div style="padding: 12px; background: var(--bg-elevated); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 500; margin-bottom: 4px;">${building.name}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">${building.id}</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="openBuildingEdit(${index})" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">编辑</button>
+                            <button onclick="deleteThing('building', ${index})" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            content += '</div>';
+            
+            openEditDialog('编辑建筑', content, null, 'building', -1);
+        }
+        
+        // 打开建筑编辑表单
+        function openBuildingEdit(index) {
+            const building = selectedNode.buildings[index];
+            const content = `
+                <div class="form-group">
+                    <label>建筑ID</label>
+                    <input type="text" name="id" value="${building.id}" placeholder="building_001">
+                </div>
+                <div class="form-group">
+                    <label>建筑名称</label>
+                    <input type="text" name="name" value="${building.name}" placeholder="房子">
+                </div>
+                <div class="form-group">
+                    <label>描述</label>
+                    <textarea name="description" placeholder="建筑描述...">${building.description || ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>类型</label>
+                    <select name="type">
+                        <option value="house" ${(building.type || 'house') === 'house' ? 'selected' : ''}>房子</option>
+                        <option value="shop" ${(building.type || 'house') === 'shop' ? 'selected' : ''}>商店</option>
+                        <option value="temple" ${(building.type || 'house') === 'temple' ? 'selected' : ''}>寺庙</option>
+                        <option value="inn" ${(building.type || 'house') === 'inn' ? 'selected' : ''}>旅馆</option>
+                    </select>
+                </div>
+            `;
+            openEditDialog('编辑建筑', content, building, 'building', index);
         }
         
         function updateNodeProperties() {
