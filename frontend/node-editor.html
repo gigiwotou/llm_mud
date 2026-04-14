@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可视化节点世界编辑器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 320px;
+            background: rgba(0, 0, 0, 0.4);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-header h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+        }
+        
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 0.9rem;
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            color: white;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 100%;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: white;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 5px;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #canvas {
+            display: block;
+            cursor: crosshair;
+        }
+        
+        .toolbar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .tool-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .tool-btn.active {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+        }
+        
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            gap: 5px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 200px;
+        }
+        
+        .info-panel h3 {
+            font-size: 0.9rem;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .info-item span:last-child {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .node-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .node-list-item {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .node-list-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .node-list-item.selected {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+        }
+        
+        .node-list-item-name {
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+        
+        .node-list-item-id {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .color-picker {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .color-option {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-option.selected {
+            border-color: white;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .help-text {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+        
+        .help-text strong {
+            color: #00d4ff;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>🗺️ 节点编辑器</h1>
+                <p>可视化构建你的游戏世界</p>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="section">
+                    <div class="section-title">操作</div>
+                    <button class="btn btn-primary" onclick="addNode()">
+                        <span>➕</span> 添加房间节点
+                    </button>
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" onclick="loadWorld()">
+                            📥 加载
+                        </button>
+                        <button class="btn btn-secondary" onclick="saveWorld()">
+                            📤 保存
+                        </button>
+                    </div>
+                    <button class="btn btn-secondary" onclick="clearCanvas()" style="margin-top: 10px;">
+                        🗑️ 清空画布
+                    </button>
+                </div>
+                
+                <div class="section" id="propertyPanel" style="display: none;">
+                    <div class="section-title">节点属性</div>
+                    <div class="form-group">
+                        <label>房间ID</label>
+                        <input type="text" id="propId" placeholder="room_001">
+                    </div>
+                    <div class="form-group">
+                        <label>房间名称</label>
+                        <input type="text" id="propName" placeholder="村庄广场">
+                    </div>
+                    <div class="form-group">
+                        <label>描述</label>
+                        <textarea id="propDesc" placeholder="房间描述..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>等级</label>
+                        <input type="number" id="propLevel" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>环境类型</label>
+                        <select id="propEnv">
+                            <option value="village">村庄</option>
+                            <option value="forest">森林</option>
+                            <option value="mountain">山脉</option>
+                            <option value="cave">洞穴</option>
+                            <option value="city">城市</option>
+                            <option value="temple">寺庙</option>
+                            <option value="dungeon">地牢</option>
+                            <option value="plains">平原</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>安全区域</label>
+                        <select id="propSafe">
+                            <option value="true">是</option>
+                            <option value="false">否</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>节点颜色</label>
+                        <div class="color-picker" id="colorPicker"></div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="updateNodeProperties()">
+                            ✓ 应用
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteSelectedNode()">
+                            🗑️ 删除
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-title">房间列表</div>
+                    <div class="node-list" id="nodeList"></div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-title">使用说明</div>
+                    <div class="help-text">
+                        <p><strong>左键拖拽</strong> - 移动节点</p>
+                        <p><strong>左键点击</strong> - 选择节点</p>
+                        <p><strong>右键点击节点</strong> - 开始连接</p>
+                        <p><strong>右键点击目标</strong> - 完成连接</p>
+                        <p><strong>滚轮</strong> - 缩放画布</p>
+                        <p><strong>中键拖拽</strong> - 平移画布</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <div class="toolbar">
+                <button class="tool-btn active" id="toolSelect" title="选择工具" onclick="setTool('select')">
+                    👆
+                </button>
+                <button class="tool-btn" id="toolConnect" title="连接工具" onclick="setTool('connect')">
+                    🔗
+                </button>
+                <button class="tool-btn" id="toolPan" title="平移工具" onclick="setTool('pan')">
+                    ✋
+                </button>
+            </div>
+            
+            <div class="zoom-controls">
+                <button class="tool-btn" onclick="zoomIn()">+</button>
+                <button class="tool-btn" onclick="zoomOut()">−</button>
+                <button class="tool-btn" onclick="resetZoom()">⟲</button>
+            </div>
+            
+            <div class="info-panel">
+                <h3>📊 统计信息</h3>
+                <div class="info-item">
+                    <span>房间数量</span>
+                    <span id="statNodes">0</span>
+                </div>
+                <div class="info-item">
+                    <span>连接数量</span>
+                    <span id="statConnections">0</span>
+                </div>
+                <div class="info-item">
+                    <span>缩放比例</span>
+                    <span id="statZoom">100%</span>
+                </div>
+            </div>
+            
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let nodes = [];
+        let connections = [];
+        let selectedNode = null;
+        let draggingNode = null;
+        let dragOffset = { x: 0, y: 0 };
+        let currentTool = 'select';
+        let connectingFrom = null;
+        let tempConnection = null;
+        
+        let zoom = 1;
+        let pan = { x: 0, y: 0 };
+        let isPanning = false;
+        let panStart = { x: 0, y: 0 };
+        
+        const nodeColors = [
+            '#00d4ff', '#7b2cbf', '#ff6b6b', '#4ecdc4',
+            '#45b7d1', '#96ceb4', '#ffeaa7', '#dfe6e9',
+            '#fd79a8', '#a29bfe', '#00b894', '#e17055'
+        ];
+        
+        const envIcons = {
+            village: '🏘️',
+            forest: '🌲',
+            mountain: '⛰️',
+            cave: '🕳️',
+            city: '🏙️',
+            temple: '🏛️',
+            dungeon: '🏚️',
+            plains: '🌾'
+        };
+        
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            setupEventListeners();
+            initColorPicker();
+            render();
+        }
+        
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            render();
+        }
+        
+        function initColorPicker() {
+            const picker = document.getElementById('colorPicker');
+            nodeColors.forEach((color, index) => {
+                const option = document.createElement('div');
+                option.className = 'color-option';
+                option.style.backgroundColor = color;
+                option.onclick = () => selectColor(index);
+                picker.appendChild(option);
+            });
+        }
+        
+        function selectColor(index) {
+            const options = document.querySelectorAll('.color-option');
+            options.forEach((opt, i) => {
+                opt.classList.toggle('selected', i === index);
+            });
+            if (selectedNode) {
+                selectedNode.colorIndex = index;
+                render();
+            }
+        }
+        
+        function setTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tool' + tool.charAt(0).toUpperCase() + tool.slice(1)).classList.add('active');
+            canvas.style.cursor = tool === 'pan' ? 'grab' : tool === 'connect' ? 'crosshair' : 'default';
+        }
+        
+        function setupEventListeners() {
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('contextmenu', handleContextMenu);
+            canvas.addEventListener('wheel', handleWheel);
+        }
+        
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX - rect.left - pan.x) / zoom,
+                y: (e.clientY - rect.top - pan.y) / zoom
+            };
+        }
+        
+        function getNodeAtPos(pos) {
+            for (let i = nodes.length - 1; i >= 0; i--) {
+                const node = nodes[i];
+                const size = 80;
+                const halfSize = size / 2;
+                if (pos.x >= node.x - halfSize && pos.x <= node.x + halfSize &&
+                    pos.y >= node.y - halfSize && pos.y <= node.y + halfSize) {
+                    return node;
+                }
+            }
+            return null;
+        }
+        
+        function getDirectionFromPos(node, pos) {
+            const size = 80;
+            const halfSize = size / 2;
+            
+            // 简化的方向连接器检测
+            const distanceX = Math.abs(pos.x - node.x);
+            const distanceY = Math.abs(pos.y - node.y);
+            
+            // 北连接器
+            if (distanceX <= 20 && pos.y < node.y && distanceY >= 35 && distanceY <= 55) {
+                return 'north';
+            }
+            
+            // 东连接器
+            if (distanceY <= 20 && pos.x > node.x && distanceX >= 35 && distanceX <= 55) {
+                return 'east';
+            }
+            
+            // 南连接器
+            if (distanceX <= 20 && pos.y > node.y && distanceY >= 35 && distanceY <= 55) {
+                return 'south';
+            }
+            
+            // 西连接器
+            if (distanceY <= 20 && pos.x < node.x && distanceX >= 35 && distanceX <= 55) {
+                return 'west';
+            }
+            
+            return null;
+        }
+        
+        let isDraggingConnection = false;
+        
+        function handleMouseDown(e) {
+            e.preventDefault();
+            const pos = getMousePos(e);
+            
+            if (e.button === 1) {
+                isPanning = true;
+                panStart = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+                canvas.style.cursor = 'grabbing';
+                return;
+            }
+            
+            if (e.button === 0) {
+                const node = getNodeAtPos(pos);
+                const direction = node ? getDirectionFromPos(node, pos) : null;
+                
+                if (node && direction) {
+                    console.log('点击了方向连接器:', direction);
+                    // 点击了方向连接器，开始连接
+                    connectingFrom = node;
+                    tempConnection = { from: node, to: pos, fromDirection: direction };
+                    isDraggingConnection = true;
+                    setTool('connect');
+                    canvas.style.cursor = 'crosshair';
+                    // 保持节点选中状态
+                    selectNode(node);
+                } else if (node && !direction) {
+                    console.log('点击了节点中心');
+                    selectNode(node);
+                    draggingNode = node;
+                    dragOffset = {
+                        x: pos.x - node.x,
+                        y: pos.y - node.y
+                    };
+                    canvas.style.cursor = 'grabbing';
+                } else {
+                    console.log('点击了空白处');
+                    selectNode(null);
+                    connectingFrom = null;
+                    tempConnection = null;
+                    isDraggingConnection = false;
+                    canvas.style.cursor = 'default';
+                }
+            }
+        }
+        
+        function handleMouseMove(e) {
+            const pos = getMousePos(e);
+            
+            if (isPanning) {
+                pan.x = e.clientX - panStart.x;
+                pan.y = e.clientY - panStart.y;
+                render();
+                return;
+            }
+            
+            if (draggingNode) {
+                draggingNode.x = pos.x - dragOffset.x;
+                draggingNode.y = pos.y - dragOffset.y;
+                render();
+                return;
+            }
+            
+            if (isDraggingConnection && tempConnection) {
+                tempConnection.to = pos;
+                render();
+            }
+        }
+        
+        function handleMouseUp(e) {
+            e.preventDefault();
+            
+            if (isPanning) {
+                isPanning = false;
+                canvas.style.cursor = currentTool === 'pan' ? 'grab' : 'default';
+                return;
+            }
+            
+            if (draggingNode) {
+                draggingNode = null;
+                canvas.style.cursor = 'default';
+                return;
+            }
+            
+            if (isDraggingConnection && connectingFrom) {
+                const pos = getMousePos(e);
+                const node = getNodeAtPos(pos);
+                const direction = node ? getDirectionFromPos(node, pos) : null;
+                
+                console.log('释放鼠标:', node, direction);
+                
+                if (node && direction && node !== connectingFrom) {
+                    console.log('创建连接:', connectingFrom.id, '->', node.id, tempConnection.fromDirection, '->', direction);
+                    addConnection(connectingFrom, node, tempConnection.fromDirection, direction);
+                    // 保持目标节点选中状态
+                    selectNode(node);
+                } else {
+                    // 保持原始节点选中状态
+                    selectNode(connectingFrom);
+                }
+                
+                connectingFrom = null;
+                tempConnection = null;
+                isDraggingConnection = false;
+                canvas.style.cursor = 'default';
+            }
+        }
+        
+        function handleContextMenu(e) {
+            e.preventDefault();
+            const pos = getMousePos(e);
+            const node = getNodeAtPos(pos);
+            const direction = node ? getDirectionFromPos(node, pos) : null;
+            
+            if (node && direction) {
+                if (!connectingFrom) {
+                    connectingFrom = node;
+                    tempConnection = { from: node, to: pos, fromDirection: direction };
+                    isDraggingConnection = true;
+                    setTool('connect');
+                    canvas.style.cursor = 'crosshair';
+                } else if (node !== connectingFrom) {
+                    addConnection(connectingFrom, node, tempConnection.fromDirection, direction);
+                    connectingFrom = null;
+                    tempConnection = null;
+                    isDraggingConnection = false;
+                    canvas.style.cursor = 'default';
+                }
+            } else {
+                connectingFrom = null;
+                tempConnection = null;
+                isDraggingConnection = false;
+                canvas.style.cursor = 'default';
+            }
+            render();
+        }
+        
+        function handleWheel(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            const newZoom = Math.max(0.2, Math.min(3, zoom * delta));
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            pan.x = mouseX - (mouseX - pan.x) * (newZoom / zoom);
+            pan.y = mouseY - (mouseY - pan.y) * (newZoom / zoom);
+            
+            zoom = newZoom;
+            updateStats();
+            render();
+        }
+        
+        function addNode() {
+            const id = 'room_' + (nodes.length + 1);
+            const node = {
+                id: id,
+                name: '房间 ' + (nodes.length + 1),
+                description: '',
+                x: canvas.width / 2 / zoom - pan.x / zoom + (Math.random() - 0.5) * 200,
+                y: canvas.height / 2 / zoom - pan.y / zoom + (Math.random() - 0.5) * 200,
+                level: 1,
+                environment: 'village',
+                isSafe: true,
+                colorIndex: nodes.length % nodeColors.length,
+                exits: []
+            };
+            nodes.push(node);
+            selectNode(node);
+            updateNodeList();
+            updateStats();
+            render();
+        }
+        
+        function selectNode(node) {
+            selectedNode = node;
+            const panel = document.getElementById('propertyPanel');
+            
+            if (node) {
+                panel.style.display = 'block';
+                document.getElementById('propId').value = node.id;
+                document.getElementById('propName').value = node.name;
+                document.getElementById('propDesc').value = node.description;
+                document.getElementById('propLevel').value = node.level;
+                document.getElementById('propEnv').value = node.environment;
+                document.getElementById('propSafe').value = String(node.isSafe);
+                
+                const options = document.querySelectorAll('.color-option');
+                options.forEach((opt, i) => {
+                    opt.classList.toggle('selected', i === node.colorIndex);
+                });
+            } else {
+                panel.style.display = 'none';
+            }
+            
+            updateNodeList();
+            render();
+        }
+        
+        function updateNodeProperties() {
+            if (!selectedNode) return;
+            
+            selectedNode.id = document.getElementById('propId').value;
+            selectedNode.name = document.getElementById('propName').value;
+            selectedNode.description = document.getElementById('propDesc').value;
+            selectedNode.level = parseInt(document.getElementById('propLevel').value);
+            selectedNode.environment = document.getElementById('propEnv').value;
+            selectedNode.isSafe = document.getElementById('propSafe').value === 'true';
+            
+            updateNodeList();
+            render();
+        }
+        
+        function deleteSelectedNode() {
+            if (!selectedNode) return;
+            
+            connections = connections.filter(conn => 
+                conn.from !== selectedNode && conn.to !== selectedNode
+            );
+            
+            nodes = nodes.filter(n => n !== selectedNode);
+            selectNode(null);
+            updateNodeList();
+            updateStats();
+            render();
+        }
+        
+        function addConnection(from, to, fromDirection, toDirection) {
+            // 验证方向
+            if (!fromDirection || !toDirection) {
+                alert('请点击方向连接器来创建连接');
+                return;
+            }
+            
+            const exists = connections.some(c => 
+                (c.from === from && c.to === to) || (c.from === to && c.to === from)
+            );
+            
+            if (!exists) {
+                connections.push({ from, to, fromDirection, toDirection });
+                
+                if (!from.exits) from.exits = [];
+                if (!to.exits) to.exits = [];
+                
+                from.exits.push({ direction: fromDirection, target_room: to.id, description: '' });
+                to.exits.push({ direction: toDirection, target_room: from.id, description: '' });
+                
+                updateStats();
+            }
+        }
+        
+        function updateNodeList() {
+            const list = document.getElementById('nodeList');
+            list.innerHTML = '';
+            
+            nodes.forEach(node => {
+                const item = document.createElement('div');
+                item.className = 'node-list-item' + (node === selectedNode ? ' selected' : '');
+                item.innerHTML = `
+                    <div class="node-list-item-name">${envIcons[node.environment] || '📍'} ${node.name}</div>
+                    <div class="node-list-item-id">${node.id}</div>
+                `;
+                item.onclick = () => {
+                    selectNode(node);
+                    panToNode(node);
+                };
+                list.appendChild(item);
+            });
+        }
+        
+        function panToNode(node) {
+            pan.x = canvas.width / 2 - node.x * zoom;
+            pan.y = canvas.height / 2 - node.y * zoom;
+            render();
+        }
+        
+        function zoomIn() {
+            zoom = Math.min(3, zoom * 1.2);
+            updateStats();
+            render();
+        }
+        
+        function zoomOut() {
+            zoom = Math.max(0.2, zoom / 1.2);
+            updateStats();
+            render();
+        }
+        
+        function resetZoom() {
+            zoom = 1;
+            pan = { x: 0, y: 0 };
+            updateStats();
+            render();
+        }
+        
+        function updateStats() {
+            document.getElementById('statNodes').textContent = nodes.length;
+            document.getElementById('statConnections').textContent = connections.length;
+            document.getElementById('statZoom').textContent = Math.round(zoom * 100) + '%';
+        }
+        
+        function clearCanvas() {
+            if (confirm('确定要清空所有节点吗？')) {
+                nodes = [];
+                connections = [];
+                selectedNode = null;
+                connectingFrom = null;
+                tempConnection = null;
+                document.getElementById('propertyPanel').style.display = 'none';
+                updateNodeList();
+                updateStats();
+                render();
+            }
+        }
+        
+        function saveWorld() {
+            const worldData = {
+                nodes: nodes.map(n => ({
+                    id: n.id,
+                    name: n.name,
+                    description: n.description,
+                    x: n.x,
+                    y: n.y,
+                    level: n.level,
+                    environment: n.environment,
+                    isSafe: n.isSafe,
+                    colorIndex: n.colorIndex,
+                    exits: n.exits || []
+                })),
+                connections: connections.map(c => ({
+                    from: c.from.id,
+                    to: c.to.id,
+                    fromDirection: c.fromDirection,
+                    toDirection: c.toDirection
+                }))
+            };
+            
+            const json = JSON.stringify(worldData, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'world_map.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function loadWorld() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        nodes = data.nodes.map(n => ({
+                            ...n,
+                            exits: n.exits || []
+                        }));
+                        connections = data.connections.map(c => ({
+                            from: nodes.find(n => n.id === c.from),
+                            to: nodes.find(n => n.id === c.to),
+                            fromDirection: c.fromDirection || 'east',
+                            toDirection: c.toDirection || 'west'
+                        })).filter(c => c.from && c.to);
+                        
+                        selectNode(null);
+                        updateNodeList();
+                        updateStats();
+                        render();
+                    } catch (err) {
+                        alert('加载失败：' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+        
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.save();
+            ctx.translate(pan.x, pan.y);
+            ctx.scale(zoom, zoom);
+            
+            drawGrid();
+            drawConnections();
+            if (tempConnection) {
+                drawTempConnection(tempConnection.from, tempConnection.to, tempConnection.fromDirection);
+            }
+            drawNodes();
+            
+            ctx.restore();
+        }
+        
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            
+            const gridSize = 50;
+            const startX = Math.floor(-pan.x / zoom / gridSize) * gridSize - gridSize;
+            const startY = Math.floor(-pan.y / zoom / gridSize) * gridSize - gridSize;
+            const endX = startX + canvas.width / zoom + gridSize * 2;
+            const endY = startY + canvas.height / zoom + gridSize * 2;
+            
+            for (let x = startX; x < endX; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, startY);
+                ctx.lineTo(x, endY);
+                ctx.stroke();
+            }
+            
+            for (let y = startY; y < endY; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(startX, y);
+                ctx.lineTo(endX, y);
+                ctx.stroke();
+            }
+        }
+        
+        function drawConnections() {
+            connections.forEach(conn => {
+                drawConnection(conn);
+            });
+        }
+        
+        function drawConnection(conn) {
+            const { from, to, fromDirection, toDirection } = conn;
+            const size = 80;
+            const halfSize = size / 2;
+            
+            // 计算连接起点和终点（从方向连接器开始）
+            let startX = from.x;
+            let startY = from.y;
+            let endX = to.x;
+            let endY = to.y;
+            
+            switch (fromDirection) {
+                case 'north':
+                    startY = from.y - halfSize;
+                    break;
+                case 'east':
+                    startX = from.x + halfSize;
+                    break;
+                case 'south':
+                    startY = from.y + halfSize;
+                    break;
+                case 'west':
+                    startX = from.x - halfSize;
+                    break;
+            }
+            
+            switch (toDirection) {
+                case 'north':
+                    endY = to.y - halfSize;
+                    break;
+                case 'east':
+                    endX = to.x + halfSize;
+                    break;
+                case 'south':
+                    endY = to.y + halfSize;
+                    break;
+                case 'west':
+                    endX = to.x - halfSize;
+                    break;
+            }
+            
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            
+            const dx = endX - startX;
+            const dy = endY - startY;
+            const cx1 = startX + dx * 0.3;
+            const cy1 = startY + dy * 0.3 - 20;
+            const cx2 = endX - dx * 0.3;
+            const cy2 = endY - dy * 0.3 - 20;
+            
+            ctx.bezierCurveTo(cx1, cy1, cx2, cy2, endX, endY);
+            ctx.strokeStyle = 'rgba(0, 212, 255, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 绘制箭头
+            const angle = Math.atan2(endY - startY, endX - startX);
+            const midX = (startX + endX) / 2;
+            const midY = (startY + endY) / 2 - 10;
+            
+            ctx.save();
+            ctx.translate(midX, midY);
+            ctx.rotate(angle);
+            ctx.fillStyle = 'rgba(0, 212, 255, 0.5)';
+            ctx.beginPath();
+            ctx.moveTo(8, 0);
+            ctx.lineTo(-4, -5);
+            ctx.lineTo(-4, 5);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+            
+            // 绘制方向文字
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            
+            const fromDirX = startX + (endX - startX) * 0.3;
+            const fromDirY = startY + (endY - startY) * 0.3 - 10;
+            ctx.fillText(fromDirection, fromDirX, fromDirY);
+            
+            const toDirX = endX - (endX - startX) * 0.3;
+            const toDirY = endY - (endY - startY) * 0.3 - 10;
+            ctx.fillText(toDirection, toDirX, toDirY);
+        }
+        
+        function drawTempConnection(from, to, fromDirection) {
+            const size = 80;
+            const halfSize = size / 2;
+            
+            // 计算连接起点（从方向连接器开始）
+            let startX = from.x;
+            let startY = from.y;
+            
+            switch (fromDirection) {
+                case 'north':
+                    startY = from.y - halfSize;
+                    break;
+                case 'east':
+                    startX = from.x + halfSize;
+                    break;
+                case 'south':
+                    startY = from.y + halfSize;
+                    break;
+                case 'west':
+                    startX = from.x - halfSize;
+                    break;
+            }
+            
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(to.x, to.y);
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([10, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        
+        function drawNodes() {
+            nodes.forEach(node => {
+                const isSelected = node === selectedNode;
+                const isConnecting = node === connectingFrom;
+                const color = nodeColors[node.colorIndex];
+                const size = 80;
+                const halfSize = size / 2;
+                
+                // 绘制方形背景
+                ctx.fillStyle = isSelected ? 'rgba(0, 212, 255, 0.2)' : 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(node.x - halfSize, node.y - halfSize, size, size);
+                
+                // 绘制方形主体
+                const gradient = ctx.createLinearGradient(
+                    node.x - halfSize, node.y - halfSize,
+                    node.x + halfSize, node.y + halfSize
+                );
+                gradient.addColorStop(0, color);
+                gradient.addColorStop(1, shadeColor(color, -30));
+                ctx.fillStyle = gradient;
+                ctx.fillRect(node.x - halfSize, node.y - halfSize, size, size);
+                
+                // 绘制边框
+                ctx.strokeStyle = isSelected ? '#fff' : (isConnecting ? '#ff0' : 'rgba(255,255,255,0.3)');
+                ctx.lineWidth = isSelected ? 3 : 2;
+                ctx.strokeRect(node.x - halfSize, node.y - halfSize, size, size);
+                
+                // 绘制四个方向的连接器
+                const connectorSize = 10;
+                const connectorColor = isSelected ? '#fff' : 'rgba(255,255,255,0.5)';
+                
+                // 北
+                ctx.fillStyle = connectorColor;
+                ctx.fillRect(node.x - connectorSize/2, node.y - halfSize - connectorSize, connectorSize, connectorSize);
+                ctx.font = '10px Arial';
+                ctx.fillStyle = 'black';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('北', node.x, node.y - halfSize - connectorSize/2);
+                
+                // 东
+                ctx.fillStyle = connectorColor;
+                ctx.fillRect(node.x + halfSize, node.y - connectorSize/2, connectorSize, connectorSize);
+                ctx.fillStyle = 'black';
+                ctx.fillText('东', node.x + halfSize + connectorSize/2, node.y);
+                
+                // 南
+                ctx.fillStyle = connectorColor;
+                ctx.fillRect(node.x - connectorSize/2, node.y + halfSize, connectorSize, connectorSize);
+                ctx.fillStyle = 'black';
+                ctx.fillText('南', node.x, node.y + halfSize + connectorSize/2);
+                
+                // 西
+                ctx.fillStyle = connectorColor;
+                ctx.fillRect(node.x - halfSize - connectorSize, node.y - connectorSize/2, connectorSize, connectorSize);
+                ctx.fillStyle = 'black';
+                ctx.fillText('西', node.x - halfSize - connectorSize/2, node.y);
+                
+                // 绘制房间信息
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'white';
+                const icon = envIcons[node.environment] || '📍';
+                ctx.fillText(icon, node.x, node.y - 8);
+                
+                ctx.font = 'bold 11px Arial';
+                ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                const name = node.name.length > 8 ? node.name.substring(0, 8) + '...' : node.name;
+                ctx.fillText(name, node.x, node.y + 20);
+                
+                if (node.isSafe) {
+                    ctx.font = '10px Arial';
+                    ctx.fillText('🛡️', node.x + 30, node.y - 25);
+                }
+                
+                if (node.level > 1) {
+                    ctx.font = 'bold 10px Arial';
+                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                    ctx.fillText('Lv.' + node.level, node.x - 30, node.y - 25);
+                }
+            });
+        }
+        
+        function shadeColor(color, percent) {
+            const num = parseInt(color.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = (num >> 16) + amt;
+            const G = (num >> 8 & 0x00FF) + amt;
+            const B = (num & 0x0000FF) + amt;
+            return '#' + (0x1000000 +
+                (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+                (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+                (B < 255 ? B < 1 ? 0 : B : 255)
+            ).toString(16).slice(1);
+        }
+        
+        init();
+        
+        function createDemoWorld() {
+            const positions = [
+                { x: 400, y: 300 },
+                { x: 600, y: 200 },
+                { x: 600, y: 400 },
+                { x: 800, y: 300 },
+                { x: 200, y: 300 },
+                { x: 400, y: 500 },
+                { x: 400, y: 100 }
+            ];
+            
+            const rooms = [
+                { id: 'village_square', name: '村庄广场', env: 'village', safe: true, level: 1 },
+                { id: 'east_forest', name: '东边森林', env: 'forest', safe: false, level: 2 },
+                { id: 'south_mountain', name: '南山', env: 'mountain', safe: false, level: 3 },
+                { id: 'old_temple', name: '古老寺庙', env: 'temple', safe: true, level: 5 },
+                { id: 'west_river', name: '西河', env: 'plains', safe: true, level: 1 },
+                { id: 'cave_entrance', name: '洞穴入口', env: 'cave', safe: false, level: 4 },
+                { id: 'shrine', name: '山顶祠堂', env: 'temple', safe: true, level: 3 }
+            ];
+            
+            rooms.forEach((room, i) => {
+                nodes.push({
+                    id: room.id,
+                    name: room.name,
+                    description: '',
+                    x: positions[i].x,
+                    y: positions[i].y,
+                    level: room.level,
+                    environment: room.env,
+                    isSafe: room.safe,
+                    colorIndex: i,
+                    exits: []
+                });
+            });
+            
+            const pairs = [
+                [0, 1], [0, 2], [0, 4], [0, 6],
+                [1, 3], [2, 5], [2, 6], [5, 3]
+            ];
+            
+            pairs.forEach(([a, b]) => {
+                addConnection(nodes[a], nodes[b]);
+            });
+            
+            updateNodeList();
+            updateStats();
+            render();
+        }
+        
+        setTimeout(createDemoWorld, 500);
+    </script>
+</body>
+</html>
