@@ -5,9 +5,19 @@ mod game;
 mod storage;
 mod api;
 mod ai;
+mod config;
+mod world;
 
 #[tokio::main]
 async fn main() {
+    // 加载游戏世界
+    let game_world = config::load_world();
+    println!("Loaded game world with {} regions", game_world.regions.len());
+    
+    // 统计房间数量
+    let room_count = game_world.regions.iter().map(|r| r.rooms.len()).sum::<usize>();
+    println!("Total rooms: {}", room_count);
+    
     // 初始化游戏状态
     let game_state = Arc::new(Mutex::new(game::GameState::new()));
     

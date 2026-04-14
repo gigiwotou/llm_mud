@@ -66,11 +66,34 @@
                 term = new Terminal({
                     fontSize: 14,
                     theme: {
-                        background: '#000000',
-                        foreground: '#ffffff'
+                        // Ubuntu终端风格的颜色方案
+                        background: '#282a36',
+                        foreground: '#f8f8f2',
+                        cursor: '#f8f8f0',
+                        selection: 'rgba(255, 255, 255, 0.3)',
+                        black: '#21222c',
+                        red: '#ff5555',
+                        green: '#50fa7b',
+                        yellow: '#f1fa8c',
+                        blue: '#bd93f9',
+                        magenta: '#ff79c6',
+                        cyan: '#8be9fd',
+                        white: '#f8f8f2',
+                        brightBlack: '#6272a4',
+                        brightRed: '#ff6e6e',
+                        brightGreen: '#69ff94',
+                        brightYellow: '#ffffa5',
+                        brightBlue: '#d6acff',
+                        brightMagenta: '#ff92df',
+                        brightCyan: '#a4ffff',
+                        brightWhite: '#ffffff'
                     },
                     // 启用unicode支持
-                    allowProposedApi: true
+                    allowProposedApi: true,
+                    // 启用ANSI颜色
+                    convertEol: true,
+                    // 启用制表符支持
+                    tabStopWidth: 8
                 });
                 console.log('Terminal created:', term);
 
@@ -93,8 +116,8 @@
                 fitAddon.fit();
                 console.log('Terminal fitted');
 
-                // 显示ASCII标题
-                showTitle();
+                // 显示ASCII动画
+                animateASCII();
 
                 // 处理窗口大小变化
                 window.addEventListener('resize', () => {
@@ -114,26 +137,178 @@
 
         // 显示ASCII标题
         function showTitle() {
+            // 使用ANSI颜色代码添加颜色
             const title = `
-╔══════════════════════════════════════════════════════════════════════╗
-║                                                                  ║
-║   ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄          ║
-║  ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌         ║
-║  ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀          ║
-║  ▐░▌          ▐░▌          ▐░▌          ▐░▌                     ║
-║  ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄          ║
-║  ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌         ║
-║  ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀          ║
-║  ▐░▌          ▐░▌          ▐░▌          ▐░▌                     ║
-║  ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄          ║
-║  ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌         ║
-║   ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀          ║
-║                                                                  ║
-║                    《凡人修真界》                                 ║
-║                                                                  ║
-╚══════════════════════════════════════════════════════════════════════╝
+${ansiColor('cyan')}╔══════════════════════════════════════════════════════════════════════╗${ansiColor('reset')}
+${ansiColor('cyan')}║                                                                  ║${ansiColor('reset')}
+${ansiColor('green')}║   ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄          ║${ansiColor('reset')}
+${ansiColor('green')}║  ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌         ║${ansiColor('reset')}
+${ansiColor('green')}║  ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀          ║${ansiColor('reset')}
+${ansiColor('green')}║  ▐░▌          ▐░▌          ▐░▌          ▐░▌                     ║${ansiColor('reset')}
+${ansiColor('green')}║  ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄          ║${ansiColor('reset')}
+${ansiColor('green')}║  ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌         ║${ansiColor('reset')}
+${ansiColor('green')}║  ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀          ║${ansiColor('reset')}
+${ansiColor('green')}║  ▐░▌          ▐░▌          ▐░▌          ▐░▌                     ║${ansiColor('reset')}
+${ansiColor('green')}║  ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄          ║${ansiColor('reset')}
+${ansiColor('green')}║  ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌         ║${ansiColor('reset')}
+${ansiColor('green')}║   ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀          ║${ansiColor('reset')}
+${ansiColor('cyan')}║                                                                  ║${ansiColor('reset')}
+${ansiColor('yellow')}║                    《凡人修真界》                                 ║${ansiColor('reset')}
+${ansiColor('cyan')}║                                                                  ║${ansiColor('reset')}
+${ansiColor('cyan')}╚══════════════════════════════════════════════════════════════════════╝${ansiColor('reset')}
 `;
             term.write(title);
+        }
+
+        // ANSI颜色代码
+        function ansiColor(color) {
+            const colors = {
+                reset: '\x1b[0m',
+                black: '\x1b[30m',
+                red: '\x1b[31m',
+                green: '\x1b[32m',
+                yellow: '\x1b[33m',
+                blue: '\x1b[34m',
+                magenta: '\x1b[35m',
+                cyan: '\x1b[36m',
+                white: '\x1b[37m',
+                brightBlack: '\x1b[90m',
+                brightRed: '\x1b[91m',
+                brightGreen: '\x1b[92m',
+                brightYellow: '\x1b[93m',
+                brightBlue: '\x1b[94m',
+                brightMagenta: '\x1b[95m',
+                brightCyan: '\x1b[96m',
+                brightWhite: '\x1b[97m',
+                bgBlack: '\x1b[40m',
+                bgRed: '\x1b[41m',
+                bgGreen: '\x1b[42m',
+                bgYellow: '\x1b[43m',
+                bgBlue: '\x1b[44m',
+                bgMagenta: '\x1b[45m',
+                bgCyan: '\x1b[46m',
+                bgWhite: '\x1b[47m'
+            };
+            return colors[color] || colors.reset;
+        }
+
+        // 创建制表符对话框
+        function createDialog(title, content) {
+            const lines = content.split('\n');
+            const maxWidth = Math.max(title.length, ...lines.map(line => line.length)) + 4;
+            
+            let dialog = `${ansiColor('cyan')}╔${'═'.repeat(maxWidth)}╗${ansiColor('reset')}\n`;
+            dialog += `${ansiColor('cyan')}║${ansiColor('yellow')} ${title.padEnd(maxWidth - 2)}${ansiColor('cyan')}║${ansiColor('reset')}\n`;
+            dialog += `${ansiColor('cyan')}╠${'═'.repeat(maxWidth)}╣${ansiColor('reset')}\n`;
+            
+            for (const line of lines) {
+                dialog += `${ansiColor('cyan')}║${ansiColor('white')} ${line.padEnd(maxWidth - 2)}${ansiColor('cyan')}║${ansiColor('reset')}\n`;
+            }
+            
+            dialog += `${ansiColor('cyan')}╚${'═'.repeat(maxWidth)}╝${ansiColor('reset')}\n`;
+            return dialog;
+        }
+
+        // 创建ASCII小地图
+        function createMinimap() {
+            const minimap = `
+${ansiColor('cyan')}┌─────────────┐${ansiColor('reset')}
+${ansiColor('cyan')}│${ansiColor('green')} ■ ■ ■ ■ ■ ${ansiColor('cyan')}│${ansiColor('reset')}
+${ansiColor('cyan')}│${ansiColor('green')} ■ ${ansiColor('yellow')}★${ansiColor('green')} ■ ■ ${ansiColor('cyan')}│${ansiColor('reset')}
+${ansiColor('cyan')}│${ansiColor('green')} ■ ■ ■ ${ansiColor('red')}▲${ansiColor('green')} ■ ${ansiColor('cyan')}│${ansiColor('reset')}
+${ansiColor('cyan')}│${ansiColor('green')} ■ ■ ■ ■ ■ ${ansiColor('cyan')}│${ansiColor('reset')}
+${ansiColor('cyan')}└─────────────┘${ansiColor('reset')}
+${ansiColor('yellow')}★${ansiColor('white')}: 当前位置  ${ansiColor('red')}▲${ansiColor('white')}: 任务目标
+`;
+            return minimap;
+        }
+
+        // ASCII动画
+        function animateASCII() {
+            const frames = [
+                `
+${ansiColor('green')}   /\
+  /  \
+ /    \
+/______\
+${ansiColor('reset')}
+`,
+                `
+${ansiColor('green')}   /\
+  /  \
+ /    \
+/______\
+   ||
+   ||
+${ansiColor('reset')}
+`,
+                `
+${ansiColor('green')}   /\
+  /  \
+ /    \
+/______\
+   ||
+   ||
+  (  )
+${ansiColor('reset')}
+`,
+                `
+${ansiColor('green')}   /\
+  /  \
+ /    \
+/______\
+   ||
+   ||
+  (  )
+   ||
+   ||
+${ansiColor('reset')}
+`,
+                `
+${ansiColor('green')}   /\
+  /  \
+ /    \
+/______\
+   ||
+   ||
+  (  )
+   ||
+   ||
+  //\\
+${ansiColor('reset')}
+`
+            ];
+            
+            let frameIndex = 0;
+            const interval = setInterval(() => {
+                // 清除之前的动画
+                term.write('\x1b[2J\x1b[H');
+                // 显示当前帧
+                term.write(frames[frameIndex]);
+                // 显示标题
+                showTitle();
+                // 显示对话框
+                const dialog = createDialog('欢迎来到凡人修真界', '你踏上了修仙之路，准备好面对各种挑战了吗？\n\n使用上下箭头键查看历史命令\n输入 help 查看可用命令');
+                term.write(dialog);
+                // 显示小地图
+                term.write(createMinimap());
+                // 显示命令提示符
+                term.write('> ');
+                
+                frameIndex = (frameIndex + 1) % frames.length;
+            }, 500);
+            
+            // 5秒后停止动画
+            setTimeout(() => {
+                clearInterval(interval);
+                // 清除屏幕并显示最终状态
+                term.write('\x1b[2J\x1b[H');
+                showTitle();
+                const dialog = createDialog('欢迎来到凡人修真界', '你踏上了修仙之路，准备好面对各种挑战了吗？\n\n使用上下箭头键查看历史命令\n输入 help 查看可用命令');
+                term.write(dialog);
+                term.write(createMinimap());
+                term.write('> ');
+            }, 5000);
         }
 
         // 建立WebSocket连接

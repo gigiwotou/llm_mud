@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏世界配置编辑器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            background-color: #f9f9f9;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        textarea {
+            height: 100px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .list {
+            margin-top: 20px;
+        }
+        .list-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+        .list-item h3 {
+            margin: 0 0 5px 0;
+        }
+        .list-item button {
+            margin-top: 5px;
+        }
+        .export-import {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        textarea#configJson {
+            width: 100%;
+            height: 300px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>游戏世界配置编辑器</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="rooms">房间管理</div>
+            <div class="tab" data-tab="npcs">NPC管理</div>
+            <div class="tab" data-tab="items">物品管理</div>
+            <div class="tab" data-tab="export">导入导出</div>
+        </div>
+        
+        <!-- 房间管理 -->
+        <div class="tab-content active" id="rooms">
+            <h2>房间管理</h2>
+            <div class="form-group">
+                <label>房间ID</label>
+                <input type="text" id="roomId" placeholder="room1">
+            </div>
+            <div class="form-group">
+                <label>房间名称</label>
+                <input type="text" id="roomName" placeholder="九州村广场">
+            </div>
+            <div class="form-group">
+                <label>房间描述</label>
+                <textarea id="roomDescription" placeholder="一个繁华的村庄广场，中央有一口水井..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>区域</label>
+                <input type="text" id="roomRegion" placeholder="九州">
+            </div>
+            <div class="form-group">
+                <label>出口</label>
+                <div id="exitsContainer">
+                    <div class="exit-item">
+                        <input type="text" placeholder="方向" style="width: 100px; margin-right: 10px;">
+                        <input type="text" placeholder="目标房间" style="width: 150px;">
+                        <button type="button" onclick="removeExit(this)">删除</button>
+                    </div>
+                </div>
+                <button type="button" onclick="addExit()">添加出口</button>
+            </div>
+            <button type="button" onclick="addRoom()">添加房间</button>
+            <button type="button" onclick="updateRoom()">更新房间</button>
+            
+            <div class="list" id="roomsList">
+                <!-- 房间列表将在这里生成 -->
+            </div>
+        </div>
+        
+        <!-- NPC管理 -->
+        <div class="tab-content" id="npcs">
+            <h2>NPC管理</h2>
+            <div class="form-group">
+                <label>NPC ID</label>
+                <input type="text" id="npcId" placeholder="npc1">
+            </div>
+            <div class="form-group">
+                <label>NPC名称</label>
+                <input type="text" id="npcName" placeholder="客栈老板">
+            </div>
+            <div class="form-group">
+                <label>NPC描述</label>
+                <textarea id="npcDescription" placeholder="一个友好的客栈老板，站在柜台后面..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>等级</label>
+                <input type="number" id="npcLevel" placeholder="1">
+            </div>
+            <div class="form-group">
+                <label>角色类型</label>
+                <select id="npcType">
+                    <option value="NPC">NPC</option>
+                    <option value="Enemy">敌人</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>种族</label>
+                <input type="text" id="npcRace" placeholder="人类">
+            </div>
+            <div class="form-group">
+                <label>AI类型</label>
+                <input type="text" id="npcAiType" placeholder="merchant">
+            </div>
+            <button type="button" onclick="addNpc()">添加NPC</button>
+            <button type="button" onclick="updateNpc()">更新NPC</button>
+            
+            <div class="list" id="npcsList">
+                <!-- NPC列表将在这里生成 -->
+            </div>
+        </div>
+        
+        <!-- 物品管理 -->
+        <div class="tab-content" id="items">
+            <h2>物品管理</h2>
+            <div class="form-group">
+                <label>物品ID</label>
+                <input type="text" id="itemId" placeholder="item1">
+            </div>
+            <div class="form-group">
+                <label>物品名称</label>
+                <input type="text" id="itemName" placeholder="疗伤丹">
+            </div>
+            <div class="form-group">
+                <label>物品描述</label>
+                <textarea id="itemDescription" placeholder="一颗红色的丹药，服用后可以恢复生命值..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>价值</label>
+                <input type="number" id="itemValue" placeholder="10">
+            </div>
+            <div class="form-group">
+                <label>物品类型</label>
+                <select id="itemType">
+                    <option value="Normal">普通</option>
+                    <option value="Herb">草药</option>
+                    <option value="MagicWeapon">法宝</option>
+                    <option value="MagicTool">法器</option>
+                    <option value="Weapon">武器</option>
+                    <option value="Ore">矿石</option>
+                    <option value="CultivationItem">修仙物品</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>等级</label>
+                <input type="number" id="itemLevel" placeholder="1">
+            </div>
+            <button type="button" onclick="addItem()">添加物品</button>
+            <button type="button" onclick="updateItem()">更新物品</button>
+            
+            <div class="list" id="itemsList">
+                <!-- 物品列表将在这里生成 -->
+            </div>
+        </div>
+        
+        <!-- 导入导出 -->
+        <div class="tab-content" id="export">
+            <h2>导入导出配置</h2>
+            <div class="export-import">
+                <button type="button" onclick="exportConfig()">导出配置</button>
+                <button type="button" onclick="importConfig()">导入配置</button>
+                <div class="form-group">
+                    <label>配置JSON</label>
+                    <textarea id="configJson"></textarea>
+                </div>
+                <button type="button" onclick="saveConfig()">保存配置</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 游戏配置数据
+        let gameConfig = {
+            rooms: [],
+            npcs: [],
+            items: [],
+            tasks: []
+        };
+        
+        // 切换标签
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // 移除所有标签的active类
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // 添加当前标签的active类
+                this.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // 添加出口
+        function addExit() {
+            const container = document.getElementById('exitsContainer');
+            const exitItem = document.createElement('div');
+            exitItem.className = 'exit-item';
+            exitItem.innerHTML = `
+                <input type="text" placeholder="方向" style="width: 100px; margin-right: 10px;">
+                <input type="text" placeholder="目标房间" style="width: 150px;">
+                <button type="button" onclick="removeExit(this)">删除</button>
+            `;
+            container.appendChild(exitItem);
+        }
+        
+        // 删除出口
+        function removeExit(button) {
+            const exitItem = button.parentElement;
+            exitItem.remove();
+        }
+        
+        // 加载默认配置
+        function loadDefaultConfig() {
+            // 这里可以加载默认配置
+            gameConfig = {
+                "rooms": [
+                    {
+                        "id": "room1",
+                        "name": "九州村广场",
+                        "description": "一个繁华的村庄广场，中央有一口水井。周围有几座建筑物，包括客栈、药店和武器店。",
+                        "exits": [
+                            {"direction": "north", "target_room": "room2"},
+                            {"direction": "south", "target_room": "room3"},
+                            {"direction": "east", "target_room": "room4"},
+                            {"direction": "west", "target_room": "room5"}
+                        ],
+                        "npcs": [],
+                        "items": [],
+                        "region": "九州"
+                    }
+                ],
+                "npcs": [],
+                "items": [],
+                "tasks": []
+            };
+            renderRooms();
+            renderNpcs();
+            renderItems();
+        }
+        
+        // 渲染房间列表
+        function renderRooms() {
+            const list = document.getElementById('roomsList');
+            list.innerHTML = '';
+            
+            gameConfig.rooms.forEach(room => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <h3>${room.name} (${room.id})</h3>
+                    <p>${room.description.substring(0, 100)}...</p>
+                    <p><strong>区域:</strong> ${room.region}</p>
+                    <p><strong>出口:</strong> ${room.exits.map(e => `${e.direction} -> ${e.target_room}`).join(', ')}</p>
+                    <button type="button" onclick="editRoom('${room.id}')">编辑</button>
+                    <button type="button" onclick="deleteRoom('${room.id}')">删除</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+        
+        // 渲染NPC列表
+        function renderNpcs() {
+            const list = document.getElementById('npcsList');
+            list.innerHTML = '';
+            
+            gameConfig.npcs.forEach(npc => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <h3>${npc.name} (${npc.id})</h3>
+                    <p>${npc.description.substring(0, 100)}...</p>
+                    <p><strong>等级:</strong> ${npc.level}</p>
+                    <p><strong>类型:</strong> ${npc.character_type}</p>
+                    <p><strong>种族:</strong> ${npc.race}</p>
+                    <button type="button" onclick="editNpc('${npc.id}')">编辑</button>
+                    <button type="button" onclick="deleteNpc('${npc.id}')">删除</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+        
+        // 渲染物品列表
+        function renderItems() {
+            const list = document.getElementById('itemsList');
+            list.innerHTML = '';
+            
+            gameConfig.items.forEach(item => {
+                const listItem = document.createElement('div');
+                listItem.className = 'list-item';
+                listItem.innerHTML = `
+                    <h3>${item.name} (${item.id})</h3>
+                    <p>${item.description.substring(0, 100)}...</p>
+                    <p><strong>价值:</strong> ${item.value}</p>
+                    <p><strong>类型:</strong> ${item.item_type}</p>
+                    <p><strong>等级:</strong> ${item.level}</p>
+                    <button type="button" onclick="editItem('${item.id}')">编辑</button>
+                    <button type="button" onclick="deleteItem('${item.id}')">删除</button>
+                `;
+                list.appendChild(listItem);
+            });
+        }
+        
+        // 添加房间
+        function addRoom() {
+            const id = document.getElementById('roomId').value;
+            const name = document.getElementById('roomName').value;
+            const description = document.getElementById('roomDescription').value;
+            const region = document.getElementById('roomRegion').value;
+            
+            // 收集出口
+            const exits = [];
+            document.querySelectorAll('#exitsContainer .exit-item').forEach(exitItem => {
+                const direction = exitItem.children[0].value;
+                const targetRoom = exitItem.children[1].value;
+                if (direction && targetRoom) {
+                    exits.push({ direction, target_room: targetRoom });
+                }
+            });
+            
+            const room = {
+                id,
+                name,
+                description,
+                exits,
+                npcs: [],
+                items: [],
+                region
+            };
+            
+            gameConfig.rooms.push(room);
+            renderRooms();
+            clearRoomForm();
+        }
+        
+        // 清除房间表单
+        function clearRoomForm() {
+            document.getElementById('roomId').value = '';
+            document.getElementById('roomName').value = '';
+            document.getElementById('roomDescription').value = '';
+            document.getElementById('roomRegion').value = '';
+            document.getElementById('exitsContainer').innerHTML = `
+                <div class="exit-item">
+                    <input type="text" placeholder="方向" style="width: 100px; margin-right: 10px;">
+                    <input type="text" placeholder="目标房间" style="width: 150px;">
+                    <button type="button" onclick="removeExit(this)">删除</button>
+                </div>
+            `;
+        }
+        
+        // 编辑房间
+        function editRoom(roomId) {
+            const room = gameConfig.rooms.find(r => r.id === roomId);
+            if (room) {
+                document.getElementById('roomId').value = room.id;
+                document.getElementById('roomName').value = room.name;
+                document.getElementById('roomDescription').value = room.description;
+                document.getElementById('roomRegion').value = room.region;
+                
+                // 填充出口
+                const container = document.getElementById('exitsContainer');
+                container.innerHTML = '';
+                room.exits.forEach(exit => {
+                    const exitItem = document.createElement('div');
+                    exitItem.className = 'exit-item';
+                    exitItem.innerHTML = `
+                        <input type="text" value="${exit.direction}" style="width: 100px; margin-right: 10px;">
+                        <input type="text" value="${exit.target_room}" style="width: 150px;">
+                        <button type="button" onclick="removeExit(this)">删除</button>
+                    `;
+                    container.appendChild(exitItem);
+                });
+            }
+        }
+        
+        // 更新房间
+        function updateRoom() {
+            const id = document.getElementById('roomId').value;
+            const roomIndex = gameConfig.rooms.findIndex(r => r.id === id);
+            
+            if (roomIndex !== -1) {
+                const name = document.getElementById('roomName').value;
+                const description = document.getElementById('roomDescription').value;
+                const region = document.getElementById('roomRegion').value;
+                
+                // 收集出口
+                const exits = [];
+                document.querySelectorAll('#exitsContainer .exit-item').forEach(exitItem => {
+                    const direction = exitItem.children[0].value;
+                    const targetRoom = exitItem.children[1].value;
+                    if (direction && targetRoom) {
+                        exits.push({ direction, target_room: targetRoom });
+                    }
+                });
+                
+                gameConfig.rooms[roomIndex] = {
+                    id,
+                    name,
+                    description,
+                    exits,
+                    npcs: gameConfig.rooms[roomIndex].npcs,
+                    items: gameConfig.rooms[roomIndex].items,
+                    region
+                };
+                
+                renderRooms();
+                clearRoomForm();
+            }
+        }
+        
+        // 删除房间
+        function deleteRoom(roomId) {
+            gameConfig.rooms = gameConfig.rooms.filter(r => r.id !== roomId);
+            renderRooms();
+        }
+        
+        // 添加NPC
+        function addNpc() {
+            const id = document.getElementById('npcId').value;
+            const name = document.getElementById('npcName').value;
+            const description = document.getElementById('npcDescription').value;
+            const level = parseInt(document.getElementById('npcLevel').value);
+            const characterType = document.getElementById('npcType').value;
+            const race = document.getElementById('npcRace').value;
+            const aiType = document.getElementById('npcAiType').value;
+            
+            const npc = {
+                id,
+                name,
+                description,
+                level,
+                attributes: {
+                    strength: 10 + level * 2,
+                    agility: 10 + level * 2,
+                    intelligence: 10 + level * 2,
+                    vitality: 10 + level * 2,
+                    qi: 5 + level * 3,
+                    spiritual_awareness: 5 + level * 2,
+                    physical_strength: 5 + level * 2,
+                    sword_heart: 5 + level * 2,
+                    health: 100 + level * 10,
+                    mana: 50 + level * 5,
+                    defense: 5 + level * 2,
+                    attack: 10 + level * 3,
+                    speed: 5 + level * 2
+                },
+                character_type: characterType,
+                race,
+                ai_type: aiType,
+                prompt_system: {
+                    base_prompts: [name],
+                    personality_prompts: ["温和", "急躁", "谨慎", "勇敢"],
+                    growth_prompts: ["成长中", "经验丰富"],
+                    current_prompts: [name]
+                },
+                behaviors: [],
+                dialogue_history: {
+                    messages: [],
+                    max_length: 10
+                }
+            };
+            
+            gameConfig.npcs.push(npc);
+            renderNpcs();
+            clearNpcForm();
+        }
+        
+        // 清除NPC表单
+        function clearNpcForm() {
+            document.getElementById('npcId').value = '';
+            document.getElementById('npcName').value = '';
+            document.getElementById('npcDescription').value = '';
+            document.getElementById('npcLevel').value = '';
+            document.getElementById('npcRace').value = '';
+            document.getElementById('npcAiType').value = '';
+        }
+        
+        // 编辑NPC
+        function editNpc(npcId) {
+            const npc = gameConfig.npcs.find(n => n.id === npcId);
+            if (npc) {
+                document.getElementById('npcId').value = npc.id;
+                document.getElementById('npcName').value = npc.name;
+                document.getElementById('npcDescription').value = npc.description;
+                document.getElementById('npcLevel').value = npc.level;
+                document.getElementById('npcType').value = npc.character_type;
+                document.getElementById('npcRace').value = npc.race;
+                document.getElementById('npcAiType').value = npc.ai_type;
+            }
+        }
+        
+        // 更新NPC
+        function updateNpc() {
+            const id = document.getElementById('npcId').value;
+            const npcIndex = gameConfig.npcs.findIndex(n => n.id === id);
+            
+            if (npcIndex !== -1) {
+                const name = document.getElementById('npcName').value;
+                const description = document.getElementById('npcDescription').value;
+                const level = parseInt(document.getElementById('npcLevel').value);
+                const characterType = document.getElementById('npcType').value;
+                const race = document.getElementById('npcRace').value;
+                const aiType = document.getElementById('npcAiType').value;
+                
+                gameConfig.npcs[npcIndex] = {
+                    ...gameConfig.npcs[npcIndex],
+                    id,
+                    name,
+                    description,
+                    level,
+                    character_type: characterType,
+                    race,
+                    ai_type: aiType,
+                    attributes: {
+                        strength: 10 + level * 2,
+                        agility: 10 + level * 2,
+                        intelligence: 10 + level * 2,
+                        vitality: 10 + level * 2,
+                        qi: 5 + level * 3,
+                        spiritual_awareness: 5 + level * 2,
+                        physical_strength: 5 + level * 2,
+                        sword_heart: 5 + level * 2,
+                        health: 100 + level * 10,
+                        mana: 50 + level * 5,
+                        defense: 5 + level * 2,
+                        attack: 10 + level * 3,
+                        speed: 5 + level * 2
+                    }
+                };
+                
+                renderNpcs();
+                clearNpcForm();
+            }
+        }
+        
+        // 删除NPC
+        function deleteNpc(npcId) {
+            gameConfig.npcs = gameConfig.npcs.filter(n => n.id !== npcId);
+            renderNpcs();
+        }
+        
+        // 添加物品
+        function addItem() {
+            const id = document.getElementById('itemId').value;
+            const name = document.getElementById('itemName').value;
+            const description = document.getElementById('itemDescription').value;
+            const value = parseInt(document.getElementById('itemValue').value);
+            const itemType = document.getElementById('itemType').value;
+            const level = parseInt(document.getElementById('itemLevel').value);
+            
+            const item = {
+                id,
+                name,
+                description,
+                value,
+                item_type: itemType,
+                level,
+                attributes: null,
+                prompt_system: {
+                    base_prompts: [name],
+                    personality_prompts: [],
+                    growth_prompts: [],
+                    current_prompts: [name]
+                },
+                is_growable: false,
+                growth_stage: 0
+            };
+            
+            gameConfig.items.push(item);
+            renderItems();
+            clearItemForm();
+        }
+        
+        // 清除物品表单
+        function clearItemForm() {
+            document.getElementById('itemId').value = '';
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemDescription').value = '';
+            document.getElementById('itemValue').value = '';
+            document.getElementById('itemLevel').value = '';
+        }
+        
+        // 编辑物品
+        function editItem(itemId) {
+            const item = gameConfig.items.find(i => i.id === itemId);
+            if (item) {
+                document.getElementById('itemId').value = item.id;
+                document.getElementById('itemName').value = item.name;
+                document.getElementById('itemDescription').value = item.description;
+                document.getElementById('itemValue').value = item.value;
+                document.getElementById('itemType').value = item.item_type;
+                document.getElementById('itemLevel').value = item.level;
+            }
+        }
+        
+        // 更新物品
+        function updateItem() {
+            const id = document.getElementById('itemId').value;
+            const itemIndex = gameConfig.items.findIndex(i => i.id === id);
+            
+            if (itemIndex !== -1) {
+                const name = document.getElementById('itemName').value;
+                const description = document.getElementById('itemDescription').value;
+                const value = parseInt(document.getElementById('itemValue').value);
+                const itemType = document.getElementById('itemType').value;
+                const level = parseInt(document.getElementById('itemLevel').value);
+                
+                gameConfig.items[itemIndex] = {
+                    ...gameConfig.items[itemIndex],
+                    id,
+                    name,
+                    description,
+                    value,
+                    item_type: itemType,
+                    level
+                };
+                
+                renderItems();
+                clearItemForm();
+            }
+        }
+        
+        // 删除物品
+        function deleteItem(itemId) {
+            gameConfig.items = gameConfig.items.filter(i => i.id !== itemId);
+            renderItems();
+        }
+        
+        // 导出配置
+        function exportConfig() {
+            const configJson = JSON.stringify(gameConfig, null, 2);
+            document.getElementById('configJson').value = configJson;
+        }
+        
+        // 导入配置
+        function importConfig() {
+            const configJson = document.getElementById('configJson').value;
+            try {
+                gameConfig = JSON.parse(configJson);
+                renderRooms();
+                renderNpcs();
+                renderItems();
+                alert('配置导入成功！');
+            } catch (e) {
+                alert('配置导入失败：' + e.message);
+            }
+        }
+        
+        // 保存配置
+        function saveConfig() {
+            const configJson = document.getElementById('configJson').value;
+            try {
+                // 创建下载链接
+                const blob = new Blob([configJson], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'config.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                alert('配置已保存为 config.json');
+            } catch (e) {
+                alert('保存失败：' + e.message);
+            }
+        }
+        
+        // 页面加载时加载默认配置
+        window.onload = function() {
+            loadDefaultConfig();
+        };
+    </script>
+</body>
+</html>
