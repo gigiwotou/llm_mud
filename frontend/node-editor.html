@@ -188,6 +188,57 @@
             transition: var(--transition-fast);
         }
         
+        /* 下拉菜单选项样式 */
+        .form-group select option,
+        select option {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+        
+        /* 通用下拉菜单样式 */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        
+        /* 针对编辑对话框中的表单元素样式 */
+        #dialogContent input,
+        #dialogContent select,
+        #dialogContent textarea {
+            width: 100%;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 0.85rem;
+            font-family: inherit;
+            transition: var(--transition-fast);
+            margin-bottom: 14px;
+        }
+        
+        #dialogContent label {
+            display: block;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.55);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        
+        /* 编辑对话框中的下拉菜单选项样式 */
+        #dialogContent select option {
+            background: rgba(15, 17, 21, 0.95);
+            color: rgba(255, 255, 255, 0.92);
+        }
+        
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
