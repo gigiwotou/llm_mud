@@ -1225,30 +1225,28 @@
             updateRoomThings();
         }
         
-        // 编辑对话框HTML
-        const editDialogHTML = `
-            <div id="editDialog" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000;">
-                <div style="background: var(--bg); border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 id="dialogTitle" style="font-size: 1.1rem; font-weight: 600;"></h3>
-                        <button onclick="closeEditDialog()" style="background: none; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer;">&times;</button>
-                    </div>
-                    <div id="dialogContent">
-                        <!-- 动态内容将在这里生成 -->
-                    </div>
-                    <div style="display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end;">
-                        <button onclick="closeEditDialog()" class="btn btn-secondary" style="flex: 1;">取消</button>
-                        <button onclick="saveEdit()" class="btn btn-primary" style="flex: 1;">保存</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
         // 初始化编辑对话框
         function initEditDialog() {
-            const dialog = document.createElement('div');
-            dialog.innerHTML = editDialogHTML;
-            document.body.appendChild(dialog.firstChild);
+            const dialogHTML = `
+                <div id="editDialog" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000;">
+                    <div style="background: #0f1115; border-radius: 10px; padding: 24px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 id="dialogTitle" style="font-size: 1.1rem; font-weight: 600; margin: 0; color: rgba(255,255,255,0.92);"></h3>
+                            <button onclick="closeEditDialog()" style="background: none; border: none; color: rgba(255,255,255,0.55); font-size: 1.5rem; cursor: pointer;">&times;</button>
+                        </div>
+                        <div id="dialogContent">
+                            <!-- 动态内容将在这里生成 -->
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end;">
+                            <button onclick="closeEditDialog()" class="btn btn-secondary" style="flex: 1; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 500; background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.92); border: 1px solid rgba(255,255,255,0.06);">取消</button>
+                            <button onclick="saveEdit()" class="btn btn-primary" style="flex: 1; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 500; background: rgba(255,255,255,0.92); color: #0f1115;">保存</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = dialogHTML;
+            document.body.appendChild(tempDiv.firstElementChild);
         }
         
         // 打开编辑对话框
@@ -1340,14 +1338,14 @@
             let content = '<div style="display: flex; flex-direction: column; gap: 12px;">';
             selectedNode.npcs.forEach((npc, index) => {
                 content += `
-                    <div style="padding: 12px; background: var(--bg-elevated); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="padding: 12px; background: rgba(255,255,255,0.04); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <div style="font-weight: 500; margin-bottom: 4px;">${npc.name}</div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted);">${npc.id}</div>
+                            <div style="font-weight: 500; margin-bottom: 4px; color: rgba(255,255,255,0.92);">${npc.name}</div>
+                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.35);">${npc.id}</div>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <button onclick="openNpcEdit(${index})" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">编辑</button>
-                            <button onclick="deleteThing('npc', ${index})" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">删除</button>
+                            <button onclick="openNpcEdit(${index})" style="padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.92); border: 1px solid rgba(255,255,255,0.06);">编辑</button>
+                            <button onclick="deleteThing('npc', ${index})" style="padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; background: #ef4444; color: white;">删除</button>
                         </div>
                     </div>
                 `;
@@ -1361,21 +1359,21 @@
         function openNpcEdit(index) {
             const npc = selectedNode.npcs[index];
             const content = `
-                <div class="form-group">
-                    <label>NPC ID</label>
-                    <input type="text" name="id" value="${npc.id}" placeholder="npc_001">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">NPC ID</label>
+                    <input type="text" name="id" value="${npc.id}" placeholder="npc_001" style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit;">
                 </div>
-                <div class="form-group">
-                    <label>NPC名称</label>
-                    <input type="text" name="name" value="${npc.name}" placeholder="村民">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">NPC名称</label>
+                    <input type="text" name="name" value="${npc.name}" placeholder="村民" style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit;">
                 </div>
-                <div class="form-group">
-                    <label>描述</label>
-                    <textarea name="description" placeholder="NPC描述...">${npc.description || ''}</textarea>
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">描述</label>
+                    <textarea name="description" placeholder="NPC描述..." style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit; resize: vertical; min-height: 80px;">${npc.description || ''}</textarea>
                 </div>
-                <div class="form-group">
-                    <label>类型</label>
-                    <select name="type">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">类型</label>
+                    <select name="type" style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit;">
                         <option value="normal" ${(npc.type || 'normal') === 'normal' ? 'selected' : ''}>普通</option>
                         <option value="vendor" ${(npc.type || 'normal') === 'vendor' ? 'selected' : ''}>商人</option>
                         <option value="quest_giver" ${(npc.type || 'normal') === 'quest_giver' ? 'selected' : ''}>任务发布者</option>
@@ -1397,14 +1395,14 @@
             let content = '<div style="display: flex; flex-direction: column; gap: 12px;">';
             selectedNode.items.forEach((item, index) => {
                 content += `
-                    <div style="padding: 12px; background: var(--bg-elevated); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="padding: 12px; background: rgba(255,255,255,0.04); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <div style="font-weight: 500; margin-bottom: 4px;">${item.name}</div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted);">${item.id}</div>
+                            <div style="font-weight: 500; margin-bottom: 4px; color: rgba(255,255,255,0.92);">${item.name}</div>
+                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.35);">${item.id}</div>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <button onclick="openItemEdit(${index})" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">编辑</button>
-                            <button onclick="deleteThing('item', ${index})" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">删除</button>
+                            <button onclick="openItemEdit(${index})" style="padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.92); border: 1px solid rgba(255,255,255,0.06);">编辑</button>
+                            <button onclick="deleteThing('item', ${index})" style="padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; background: #ef4444; color: white;">删除</button>
                         </div>
                     </div>
                 `;
@@ -1418,30 +1416,30 @@
         function openItemEdit(index) {
             const item = selectedNode.items[index];
             const content = `
-                <div class="form-group">
-                    <label>物品ID</label>
-                    <input type="text" name="id" value="${item.id}" placeholder="item_001">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">物品ID</label>
+                    <input type="text" name="id" value="${item.id}" placeholder="item_001" style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit;">
                 </div>
-                <div class="form-group">
-                    <label>物品名称</label>
-                    <input type="text" name="name" value="${item.name}" placeholder="药水">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">物品名称</label>
+                    <input type="text" name="name" value="${item.name}" placeholder="药水" style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit;">
                 </div>
-                <div class="form-group">
-                    <label>描述</label>
-                    <textarea name="description" placeholder="物品描述...">${item.description || ''}</textarea>
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">描述</label>
+                    <textarea name="description" placeholder="物品描述..." style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit; resize: vertical; min-height: 80px;">${item.description || ''}</textarea>
                 </div>
-                <div class="form-group">
-                    <label>类型</label>
-                    <select name="type">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">类型</label>
+                    <select name="type" style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit;">
                         <option value="normal" ${(item.type || 'normal') === 'normal' ? 'selected' : ''}>普通</option>
                         <option value="weapon" ${(item.type || 'normal') === 'weapon' ? 'selected' : ''}>武器</option>
                         <option value="armor" ${(item.type || 'normal') === 'armor' ? 'selected' : ''}> armor</option>
                         <option value="potion" ${(item.type || 'normal') === 'potion' ? 'selected' : ''}>药水</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>价值</label>
-                    <input type="number" name="value" value="${item.value || 1}" min="0">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">价值</label>
+                    <input type="number" name="value" value="${item.value || 1}" min="0" style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit;">
                 </div>
             `;
             openEditDialog('编辑物品', content, item, 'item', index);
@@ -1459,14 +1457,14 @@
             let content = '<div style="display: flex; flex-direction: column; gap: 12px;">';
             selectedNode.buildings.forEach((building, index) => {
                 content += `
-                    <div style="padding: 12px; background: var(--bg-elevated); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="padding: 12px; background: rgba(255,255,255,0.04); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <div style="font-weight: 500; margin-bottom: 4px;">${building.name}</div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted);">${building.id}</div>
+                            <div style="font-weight: 500; margin-bottom: 4px; color: rgba(255,255,255,0.92);">${building.name}</div>
+                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.35);">${building.id}</div>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <button onclick="openBuildingEdit(${index})" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">编辑</button>
-                            <button onclick="deleteThing('building', ${index})" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">删除</button>
+                            <button onclick="openBuildingEdit(${index})" style="padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.92); border: 1px solid rgba(255,255,255,0.06);">编辑</button>
+                            <button onclick="deleteThing('building', ${index})" style="padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; background: #ef4444; color: white;">删除</button>
                         </div>
                     </div>
                 `;
@@ -1480,21 +1478,21 @@
         function openBuildingEdit(index) {
             const building = selectedNode.buildings[index];
             const content = `
-                <div class="form-group">
-                    <label>建筑ID</label>
-                    <input type="text" name="id" value="${building.id}" placeholder="building_001">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">建筑ID</label>
+                    <input type="text" name="id" value="${building.id}" placeholder="building_001" style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit;">
                 </div>
-                <div class="form-group">
-                    <label>建筑名称</label>
-                    <input type="text" name="name" value="${building.name}" placeholder="房子">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">建筑名称</label>
+                    <input type="text" name="name" value="${building.name}" placeholder="房子" style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit;">
                 </div>
-                <div class="form-group">
-                    <label>描述</label>
-                    <textarea name="description" placeholder="建筑描述...">${building.description || ''}</textarea>
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">描述</label>
+                    <textarea name="description" placeholder="建筑描述..." style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit; resize: vertical; min-height: 80px;">${building.description || ''}</textarea>
                 </div>
-                <div class="form-group">
-                    <label>类型</label>
-                    <select name="type">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;">类型</label>
+                    <select name="type" style="width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: rgba(255,255,255,0.92); font-size: 0.85rem; font-family: inherit;">
                         <option value="house" ${(building.type || 'house') === 'house' ? 'selected' : ''}>房子</option>
                         <option value="shop" ${(building.type || 'house') === 'shop' ? 'selected' : ''}>商店</option>
                         <option value="temple" ${(building.type || 'house') === 'temple' ? 'selected' : ''}>寺庙</option>
