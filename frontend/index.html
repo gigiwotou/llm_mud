@@ -137,23 +137,23 @@
 
         // 显示ASCII标题
         function showTitle() {
-            // 使用ANSI颜色代码添加颜色
+            // 使用ANSI颜色代码和图标添加颜色
             const title = `
 ${ansiColor('cyan')}╔══════════════════════════════════════════════════════════════════════╗${ansiColor('reset')}
 ${ansiColor('cyan')}║                                                                  ║${ansiColor('reset')}
-${ansiColor('green')}║   ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄          ║${ansiColor('reset')}
-${ansiColor('green')}║  ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌         ║${ansiColor('reset')}
-${ansiColor('green')}║  ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀          ║${ansiColor('reset')}
-${ansiColor('green')}║  ▐░▌          ▐░▌          ▐░▌          ▐░▌                     ║${ansiColor('reset')}
-${ansiColor('green')}║  ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄          ║${ansiColor('reset')}
-${ansiColor('green')}║  ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌         ║${ansiColor('reset')}
-${ansiColor('green')}║  ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀          ║${ansiColor('reset')}
-${ansiColor('green')}║  ▐░▌          ▐░▌          ▐░▌          ▐░▌                     ║${ansiColor('reset')}
-${ansiColor('green')}║  ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄          ║${ansiColor('reset')}
-${ansiColor('green')}║  ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌         ║${ansiColor('reset')}
-${ansiColor('green')}║   ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀          ║${ansiColor('reset')}
+${ansiColor('green')}║   ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')}          ║${ansiColor('reset')}
+${ansiColor('green')}║  ${icons('dragon')}  ${icons('phoenix')}  ${icons('moon')}  ${icons('sun')}  ${icons('dragon')}  ${icons('phoenix')}  ${icons('moon')}  ${icons('sun')}  ${icons('dragon')}  ${icons('phoenix')}        ║${ansiColor('reset')}
+${ansiColor('green')}║  ${icons('mountain')}  ${icons('cloud')}  ${icons('tree')}  ${icons('flower')}  ${icons('mountain')}  ${icons('cloud')}  ${icons('tree')}  ${icons('flower')}  ${icons('mountain')}  ${icons('cloud')}          ║${ansiColor('reset')}
+${ansiColor('green')}║  ${icons('elixir')}  ${icons('pill')}  ${icons('herb')}  ${icons('elixir')}  ${icons('pill')}  ${icons('herb')}  ${icons('elixir')}  ${icons('pill')}  ${icons('herb')}                     ║${ansiColor('reset')}
+${ansiColor('green')}║  ${icons('sword')}  ${icons('shield')}  ${icons('magic')}  ${icons('lightning')}  ${icons('sword')}  ${icons('shield')}  ${icons('magic')}  ${icons('lightning')}  ${icons('sword')}          ║${ansiColor('reset')}
+${ansiColor('green')}║  ${icons('gem')}  ${icons('gold')}  ${icons('chest')}  ${icons('scroll')}  ${icons('gem')}  ${icons('gold')}  ${icons('chest')}  ${icons('scroll')}  ${icons('gem')}  ${icons('gold')}         ║${ansiColor('reset')}
+${ansiColor('green')}║  ${icons('tiger')}  ${icons('crane')}  ${icons('monk')}  ${icons('cultivator')}  ${icons('tiger')}  ${icons('crane')}  ${icons('monk')}  ${icons('cultivator')}  ${icons('tiger')}          ║${ansiColor('reset')}
+${ansiColor('green')}║  ${icons('star')}  ${icons('star')}  ${icons('star')}  ${icons('star')}  ${icons('star')}  ${icons('star')}  ${icons('star')}  ${icons('star')}  ${icons('star')}  ${icons('star')}                     ║${ansiColor('reset')}
+${ansiColor('green')}║  ${icons('dragon')}  ${icons('phoenix')}  ${icons('moon')}  ${icons('sun')}  ${icons('dragon')}  ${icons('phoenix')}  ${icons('moon')}  ${icons('sun')}  ${icons('dragon')}  ${icons('phoenix')}          ║${ansiColor('reset')}
+${ansiColor('green')}║  ${icons('mountain')}  ${icons('cloud')}  ${icons('tree')}  ${icons('flower')}  ${icons('mountain')}  ${icons('cloud')}  ${icons('tree')}  ${icons('flower')}  ${icons('mountain')}  ${icons('cloud')}         ║${ansiColor('reset')}
+${ansiColor('green')}║   ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')} ${icons('star')}          ║${ansiColor('reset')}
 ${ansiColor('cyan')}║                                                                  ║${ansiColor('reset')}
-${ansiColor('yellow')}║                    《凡人修真界》                                 ║${ansiColor('reset')}
+${ansiColor('yellow')}║                    ${icons('dragon')} 《凡人修真界》 ${icons('phoenix')}                                 ║${ansiColor('reset')}
 ${ansiColor('cyan')}║                                                                  ║${ansiColor('reset')}
 ${ansiColor('cyan')}╚══════════════════════════════════════════════════════════════════════╝${ansiColor('reset')}
 `;
@@ -192,6 +192,116 @@ ${ansiColor('cyan')}╚═══════════════════
             return colors[color] || colors.reset;
         }
 
+        // 图标库
+        function icons(iconName) {
+            const iconMap = {
+                // 游戏通用图标
+                sword: '⚔️',
+                shield: '🛡️',
+                bow: '🏹',
+                magic: '✨',
+                fire: '🔥',
+                water: '💧',
+                earth: '🌍',
+                wind: '💨',
+                lightning: '⚡',
+                star: '⭐',
+                gold: '💰',
+                coin: '🪙',
+                gem: '💎',
+                chest: '📦',
+                bag: '🎒',
+                scroll: '📜',
+                book: '📚',
+                map: '🗺️',
+                compass: '🧭',
+                
+                // 修仙图标
+                elixir: '🧪',
+                pill: '💊',
+                herb: '🌿',
+                flower: '🌸',
+                tree: '🌲',
+                mountain: '⛰️',
+                cloud: '☁️',
+                moon: '🌙',
+                sun: '☀️',
+                dragon: '🐉',
+                phoenix: '🦅',
+                crane: '🦢',
+                tiger: '🐅',
+                
+                // 角色图标
+                warrior: '⚔️',
+                mage: '🧙',
+                cultivator: '🧘',
+                monk: '🧘‍♂️',
+                npc: '👤',
+                enemy: '👹',
+                demon: '👿',
+                monster: '👾',
+                
+                // 状态图标
+                health: '❤️',
+                mana: '💙',
+                stamina: '💚',
+                experience: '⭐',
+                level: '📊',
+                quest: '📋',
+                task: '✅',
+                warning: '⚠️',
+                danger: '☠️',
+                death: '💀',
+                victory: '🏆',
+                achievement: '🎖️',
+                trophy: '🏅',
+                
+                // 界面图标
+                home: '🏠',
+                shop: '🏪',
+                tavern: '🍺',
+                guild: '🏰',
+                temple: '⛩️',
+                forest: '🌲',
+                cave: '🕳️',
+                city: '🏙️',
+                village: '🏘️',
+                
+                // 时间图标
+                hourglass: '⌛',
+                clock: '🕐',
+                calendar: '📅',
+                
+                // 通信图标
+                message: '💬',
+                letter: '✉️',
+                speech: '💭',
+                
+                // 其他图标
+                question: '❓',
+                exclamation: '❗',
+                info: 'ℹ️',
+                check: '✅',
+                cross: '❌',
+                plus: '➕',
+                minus: '➖',
+                arrowUp: '⬆️',
+                arrowDown: '⬇️',
+                arrowLeft: '⬅️',
+                arrowRight: '➡️',
+                heart: '❤️',
+                heartBroken: '💔',
+                thumbsUp: '👍',
+                thumbsDown: '👎'
+            };
+            return iconMap[iconName] || '';
+        }
+
+        // 创建带图标的消息
+        function iconMessage(icon, message, color = 'white') {
+            return `${icons(icon)} ${ansiColor(color)}${message}${ansiColor('reset')}`;
+        }
+
         // 创建制表符对话框
         function createDialog(title, content) {
             const lines = content.split('\n');
@@ -213,12 +323,12 @@ ${ansiColor('cyan')}╚═══════════════════
         function createMinimap() {
             const minimap = `
 ${ansiColor('cyan')}┌─────────────┐${ansiColor('reset')}
-${ansiColor('cyan')}│${ansiColor('green')} ■ ■ ■ ■ ■ ${ansiColor('cyan')}│${ansiColor('reset')}
-${ansiColor('cyan')}│${ansiColor('green')} ■ ${ansiColor('yellow')}★${ansiColor('green')} ■ ■ ${ansiColor('cyan')}│${ansiColor('reset')}
-${ansiColor('cyan')}│${ansiColor('green')} ■ ■ ■ ${ansiColor('red')}▲${ansiColor('green')} ■ ${ansiColor('cyan')}│${ansiColor('reset')}
-${ansiColor('cyan')}│${ansiColor('green')} ■ ■ ■ ■ ■ ${ansiColor('cyan')}│${ansiColor('reset')}
+${ansiColor('cyan')}│${icons('home')} ${icons('tree')} ${icons('forest')} ${icons('mountain')} ${icons('city')}${ansiColor('cyan')}│${ansiColor('reset')}
+${ansiColor('cyan')}│${icons('tree')} ${icons('star')} ${icons('herb')} ${icons('flower')} ${icons('tavern')}${ansiColor('cyan')}│${ansiColor('reset')}
+${ansiColor('cyan')}│${icons('forest')} ${icons('shop')} ${icons('gem')} ${icons('quest')} ${icons('temple')}${ansiColor('cyan')}│${ansiColor('reset')}
+${ansiColor('cyan')}│${icons('mountain')} ${icons('cave')} ${icons('dragon')} ${icons('demon')} ${icons('guild')}${ansiColor('cyan')}│${ansiColor('reset')}
 ${ansiColor('cyan')}└─────────────┘${ansiColor('reset')}
-${ansiColor('yellow')}★${ansiColor('white')}: 当前位置  ${ansiColor('red')}▲${ansiColor('white')}: 任务目标
+${icons('star')}: 当前位置  ${icons('quest')}: 任务目标  ${icons('demon')}: 敌人
 `;
             return minimap;
         }
@@ -227,54 +337,38 @@ ${ansiColor('yellow')}★${ansiColor('white')}: 当前位置  ${ansiColor('red')
         function animateASCII() {
             const frames = [
                 `
-${ansiColor('green')}   /\
-  /  \
- /    \
-/______\
+${ansiColor('green')}     ${icons('sun')}
+   ${icons('cloud')}    ${icons('cloud')}
+     ${icons('mountain')}
+   ${icons('tree')}  ${icons('tree')}
 ${ansiColor('reset')}
 `,
                 `
-${ansiColor('green')}   /\
-  /  \
- /    \
-/______\
-   ||
-   ||
+${ansiColor('green')}     ${icons('sun')}
+   ${icons('cloud')}    ${icons('cloud')}
+     ${icons('mountain')} ${icons('elixir')}
+   ${icons('tree')}  ${icons('tree')}
 ${ansiColor('reset')}
 `,
                 `
-${ansiColor('green')}   /\
-  /  \
- /    \
-/______\
-   ||
-   ||
-  (  )
+${ansiColor('green')}     ${icons('sun')}
+   ${icons('cloud')}    ${icons('cloud')}
+     ${icons('mountain')} ${icons('elixir')} ${icons('gem')}
+   ${icons('tree')}  ${icons('tree')}
 ${ansiColor('reset')}
 `,
                 `
-${ansiColor('green')}   /\
-  /  \
- /    \
-/______\
-   ||
-   ||
-  (  )
-   ||
-   ||
+${ansiColor('green')}     ${icons('sun')} ${icons('star')}
+   ${icons('cloud')}    ${icons('cloud')}
+     ${icons('mountain')} ${icons('elixir')} ${icons('gem')}
+   ${icons('tree')}  ${icons('tree')}
 ${ansiColor('reset')}
 `,
                 `
-${ansiColor('green')}   /\
-  /  \
- /    \
-/______\
-   ||
-   ||
-  (  )
-   ||
-   ||
-  //\\
+${ansiColor('green')}     ${icons('sun')} ${icons('star')} ${icons('dragon')}
+   ${icons('cloud')}    ${icons('cloud')}
+     ${icons('mountain')} ${icons('elixir')} ${icons('gem')}
+   ${icons('tree')}  ${icons('tree')}
 ${ansiColor('reset')}
 `
             ];
@@ -287,8 +381,12 @@ ${ansiColor('reset')}
                 term.write(frames[frameIndex]);
                 // 显示标题
                 showTitle();
-                // 显示对话框
-                const dialog = createDialog('欢迎来到凡人修真界', '你踏上了修仙之路，准备好面对各种挑战了吗？\n\n使用上下箭头键查看历史命令\n输入 help 查看可用命令');
+                // 显示对话框（使用图标）
+                const welcomeMessage = `${icons('question')} 你踏上了修仙之路，准备好面对各种挑战了吗？\n\n` +
+                    `${icons('arrowUp')} ${icons('arrowDown')} 使用上下箭头键查看历史命令\n` +
+                    `${icons('book')} 输入 help 查看可用命令\n` +
+                    `${icons('star')} 祝您修仙愉快！`;
+                const dialog = createDialog(`${icons('dragon')} 欢迎来到凡人修真界 ${icons('phoenix')}`, welcomeMessage);
                 term.write(dialog);
                 // 显示小地图
                 term.write(createMinimap());
@@ -304,7 +402,11 @@ ${ansiColor('reset')}
                 // 清除屏幕并显示最终状态
                 term.write('\x1b[2J\x1b[H');
                 showTitle();
-                const dialog = createDialog('欢迎来到凡人修真界', '你踏上了修仙之路，准备好面对各种挑战了吗？\n\n使用上下箭头键查看历史命令\n输入 help 查看可用命令');
+                const welcomeMessage = `${icons('question')} 你踏上了修仙之路，准备好面对各种挑战了吗？\n\n` +
+                    `${icons('arrowUp')} ${icons('arrowDown')} 使用上下箭头键查看历史命令\n` +
+                    `${icons('book')} 输入 help 查看可用命令\n` +
+                    `${icons('star')} 祝您修仙愉快！`;
+                const dialog = createDialog(`${icons('dragon')} 欢迎来到凡人修真界 ${icons('phoenix')}`, welcomeMessage);
                 term.write(dialog);
                 term.write(createMinimap());
                 term.write('> ');
@@ -398,6 +500,30 @@ ${ansiColor('reset')}
         function handleCustomCommand(command) {
             if (command.startsWith('settings')) {
                 handleSettingsCommand(command);
+                return true;
+            } else if (command === 'icons' || command === 'help icons') {
+                // 显示图标列表
+                term.write('\r\n');
+                const iconList = [
+                    '游戏通用: sword⚔️, shield🛡️, magic✨, fire🔥, water💧, earth🌍, wind💨, lightning⚡',
+                    '修仙: elixir🧪, pill💊, herb🌿, flower🌸, tree🌲, mountain⛰️, cloud☁️, moon🌙, sun☀️',
+                    '角色: warrior⚔️, mage🧙, cultivator🧘, npc👤, enemy👹, demon👿, monster👾',
+                    '状态: health❤️, mana💙, stamina💚, experience⭐, level📊, quest📋, warning⚠️',
+                    '界面: home🏠, shop🏪, tavern🍺, guild🏰, temple⛩️, forest🌲, cave🕳️, city🏙️',
+                    '其他: star⭐, gold💰, gem💎, chest📦, bag🎒, scroll📜, book📚, map🗺️'
+                ];
+                const iconDialog = createDialog('可用图标列表', iconList.join('\n'));
+                term.write(iconDialog);
+                return true;
+            } else if (command === 'demo') {
+                // 显示图标演示
+                term.write('\r\n');
+                term.write(iconMessage('sword', '这是一把锋利的剑！', 'red') + '\r\n');
+                term.write(iconMessage('shield', '这是一面坚固的盾牌！', 'blue') + '\r\n');
+                term.write(iconMessage('magic', '魔法正在施展中...', 'magenta') + '\r\n');
+                term.write(iconMessage('elixir', '这是一炉珍贵的丹药！', 'green') + '\r\n');
+                term.write(iconMessage('dragon', '传说中的龙出现了！', 'yellow') + '\r\n');
+                term.write(iconMessage('star', '恭喜获得一颗星星！', 'yellow') + '\r\n');
                 return true;
             }
             return false;
