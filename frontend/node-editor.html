@@ -1610,16 +1610,6 @@
                     ctx.fill();
                 }
                 
-                // 绘制区域标识边框
-                if (region) {
-                    ctx.strokeStyle = regionColor;
-                    ctx.lineWidth = 1.5;
-                    ctx.setLineDash([4, 2]);
-                    roundRect(ctx, node.x - halfSize - 4, node.y - halfSize - 4, size + 8, size + 8, cornerRadius + 2);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-                }
-                
                 // 绘制主体 - 现代渐变效果
                 const gradient = ctx.createLinearGradient(
                     node.x - halfSize, node.y - halfSize,
@@ -1676,14 +1666,14 @@
                 drawConnector(node.x, node.y + halfSize, 'south', node, isSelected, isConnecting, connectorRadius, connectorHoverRadius);
                 drawConnector(node.x - halfSize, node.y, 'west', node, isSelected, isConnecting, connectorRadius, connectorHoverRadius);
                 
-                // 绘制区域标识
-                if (region) {
-                    ctx.font = '600 8px system-ui, -apple-system, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'top';
-                    ctx.fillStyle = regionColor;
-                    const regionName = region.name.length > 8 ? region.name.substring(0, 8) + '…' : region.name;
-                    ctx.fillText(regionName, node.x, node.y - halfSize - 12);
+                // 绘制区域标识边框 - 只在选中区域时显示
+                if (region && selectedRegion && region.id === selectedRegion.id) {
+                    ctx.strokeStyle = regionColor;
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([4, 2]);
+                    roundRect(ctx, node.x - halfSize - 4, node.y - halfSize - 4, size + 8, size + 8, cornerRadius + 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
                 }
                 
                 // 绘制房间信息 - 现代排版
