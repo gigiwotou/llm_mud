@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>可视化节点世界编辑器</title>
     <style>
+        /* CSS 变量 */
+        :root {
+            --bg: #0f1115;
+            --bg-elevated: rgba(255, 255, 255, 0.04);
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --text-primary: rgba(255, 255, 255, 0.92);
+            --text-secondary: rgba(255, 255, 255, 0.55);
+            --text-muted: rgba(255, 255, 255, 0.35);
+            --accent: #38bdf8;
+            --accent-soft: rgba(56, 189, 248, 0.15);
+            --danger: #ef4444;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 10px;
+            --transition-fast: 0.15s ease-out;
+            --transition-normal: 0.25s ease-out;
+        }
+        
+        /* 全局样式 */
         * {
             margin: 0;
             padding: 0;
@@ -12,149 +31,178 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
             height: 100vh;
             overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
         }
         
+        /* 应用容器 */
         .app-container {
             display: flex;
             height: 100vh;
         }
         
+        /* 侧边栏 */
         .sidebar {
-            width: 320px;
-            background: rgba(0, 0, 0, 0.4);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            width: 300px;
+            background: var(--bg);
+            border-right: 1px solid var(--border-subtle);
             display: flex;
             flex-direction: column;
-            backdrop-filter: blur(10px);
         }
         
+        /* 侧边栏头部 */
         .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 28px 24px 20px;
+            border-bottom: 1px solid var(--border-subtle);
         }
         
         .sidebar-header h1 {
-            font-size: 1.5rem;
-            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            margin-bottom: 4px;
         }
         
         .sidebar-header p {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 5px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
         }
         
+        /* 侧边栏内容 */
         .sidebar-content {
             flex: 1;
             overflow-y: auto;
-            padding: 15px;
+            padding: 20px 24px;
         }
         
+        /* 区块样式 */
         .section {
-            margin-bottom: 20px;
+            margin-bottom: 28px;
         }
         
         .section-title {
-            font-size: 0.9rem;
-            color: #00d4ff;
+            font-size: 0.7rem;
+            color: var(--text-muted);
             margin-bottom: 10px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.12em;
         }
         
+        /* 按钮样式 */
         .btn {
             padding: 10px 16px;
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 500;
-            transition: all 0.3s ease;
+            transition: var(--transition-fast);
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
+            font-family: inherit;
+            width: 100%;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
-            color: white;
-            width: 100%;
-            justify-content: center;
+            background: var(--text-primary);
+            color: var(--bg);
         }
         
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
         }
         
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            width: 100%;
-            justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
         }
         
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        
+        .btn-secondary:active {
+            transform: scale(0.98);
         }
         
         .btn-danger {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            background: var(--danger);
             color: white;
         }
         
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+        
+        /* 按钮组 */
         .btn-group {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-top: 10px;
         }
         
+        .btn-group .btn {
+            flex: 1;
+        }
+        
+        /* 表单样式 */
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
         
         .form-group label {
             display: block;
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 5px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 500;
         }
         
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            color: white;
-            font-size: 0.9rem;
+            padding: 8px 10px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-family: inherit;
+            transition: var(--transition-fast);
         }
         
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #00d4ff;
-            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, 0.05);
         }
         
         .form-group textarea {
             resize: vertical;
             min-height: 80px;
+            line-height: 1.5;
         }
         
+        /* 画布容器 */
         .canvas-container {
             flex: 1;
             position: relative;
@@ -166,167 +214,195 @@
             cursor: crosshair;
         }
         
+        /* 工具栏 */
         .toolbar {
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px;
-            border-radius: 10px;
+            background: rgba(15, 17, 21, 0.85);
+            padding: 8px;
+            border-radius: var(--radius-lg);
             display: flex;
-            gap: 10px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 6px;
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
         }
         
         .tool-btn {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border: none;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: white;
+            background: transparent;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
             cursor: pointer;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            transition: var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .tool-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--bg-elevated);
+            color: var(--text-primary);
         }
         
         .tool-btn.active {
-            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            background: var(--accent-soft);
+            color: var(--accent);
         }
         
+        /* 缩放控制 */
         .zoom-controls {
             position: absolute;
             bottom: 20px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px;
-            border-radius: 10px;
+            background: rgba(15, 17, 21, 0.85);
+            padding: 8px;
+            border-radius: var(--radius-lg);
             display: flex;
-            gap: 5px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 4px;
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
         }
         
+        /* 信息面板 */
         .info-panel {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 15px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            min-width: 200px;
+            background: rgba(15, 17, 21, 0.85);
+            padding: 16px 18px;
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
+            min-width: 180px;
         }
         
         .info-panel h3 {
-            font-size: 0.9rem;
-            color: #00d4ff;
-            margin-bottom: 10px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
         }
         
         .info-item {
             display: flex;
             justify-content: space-between;
-            font-size: 0.85rem;
-            margin-bottom: 5px;
-            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+        
+        .info-item:last-child {
+            margin-bottom: 0;
         }
         
         .info-item span:last-child {
-            color: white;
+            color: var(--text-primary);
             font-weight: 500;
+            font-variant-numeric: tabular-nums;
         }
         
+        /* 节点列表 */
         .node-list {
-            max-height: 300px;
+            max-height: 280px;
             overflow-y: auto;
         }
         
         .node-list-item {
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            margin-bottom: 8px;
+            padding: 10px 12px;
+            border-radius: var(--radius-md);
+            margin-bottom: 6px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: var(--transition-fast);
             border: 1px solid transparent;
         }
         
         .node-list-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--bg-elevated);
         }
         
         .node-list-item.selected {
-            border-color: #00d4ff;
-            background: rgba(0, 212, 255, 0.1);
+            background: var(--accent-soft);
+            border-color: var(--accent);
         }
         
         .node-list-item-name {
+            font-size: 0.85rem;
             font-weight: 500;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
+            color: var(--text-primary);
+        }
+        
+        .node-list-item.selected .node-list-item-name {
+            color: var(--accent);
         }
         
         .node-list-item-id {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
         }
         
+        /* 颜色选择器 */
         .color-picker {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
         }
         
         .color-option {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             border: 2px solid transparent;
-            transition: all 0.3s ease;
+            transition: var(--transition-fast);
         }
         
         .color-option:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
         }
         
         .color-option.selected {
-            border-color: white;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            border-color: var(--text-primary);
+            transform: scale(1.1);
+            box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text-primary);
         }
         
+        /* 帮助文本 */
         .help-text {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.5);
-            margin-top: 10px;
-            line-height: 1.5;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+            line-height: 1.6;
         }
         
         .help-text strong {
-            color: #00d4ff;
+            color: var(--text-secondary);
+            font-weight: 600;
         }
         
+        /* 滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
         
         ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
+            background: transparent;
         }
         
         ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
+            background: var(--border-subtle);
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15);
         }
     </style>
 </head>
@@ -334,28 +410,31 @@
     <div class="app-container">
         <div class="sidebar">
             <div class="sidebar-header">
-                <h1>🗺️ 节点编辑器</h1>
-                <p>可视化构建你的游戏世界</p>
+                <h1>节点编辑器</h1>
+                <p>构建你的游戏世界</p>
             </div>
             
             <div class="sidebar-content">
                 <div class="section">
-                    <div class="section-title">操作</div>
-                    <button class="btn btn-primary" onclick="addNode()">
-                        <span>➕</span> 添加房间节点
+                <div class="section-title">操作</div>
+                <button class="btn btn-primary" onclick="addNode()">
+                    添加房间
+                </button>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="loadWorld()">
+                        加载
                     </button>
-                    <div class="btn-group">
-                        <button class="btn btn-secondary" onclick="loadWorld()">
-                            📥 加载
-                        </button>
-                        <button class="btn btn-secondary" onclick="saveWorld()">
-                            📤 保存
-                        </button>
-                    </div>
-                    <button class="btn btn-secondary" onclick="clearCanvas()" style="margin-top: 10px;">
-                        🗑️ 清空画布
+                    <button class="btn btn-secondary" onclick="saveWorld()">
+                        保存
                     </button>
                 </div>
+                <button class="btn btn-secondary" onclick="clearCanvas()" style="margin-top: 10px;">
+                    清空
+                </button>
+                <button class="btn btn-secondary" onclick="createDemoWorld()" style="margin-top: 10px;">
+                    示例世界
+                </button>
+            </div>
                 
                 <div class="section" id="propertyPanel" style="display: none;">
                     <div class="section-title">节点属性</div>
@@ -401,10 +480,10 @@
                     </div>
                     <div class="btn-group">
                         <button class="btn btn-primary" onclick="updateNodeProperties()">
-                            ✓ 应用
+                            应用
                         </button>
                         <button class="btn btn-danger" onclick="deleteSelectedNode()">
-                            🗑️ 删除
+                            删除
                         </button>
                     </div>
                 </div>
@@ -415,14 +494,13 @@
                 </div>
                 
                 <div class="section">
-                    <div class="section-title">使用说明</div>
+                    <div class="section-title">快捷键</div>
                     <div class="help-text">
-                        <p><strong>左键拖拽</strong> - 移动节点</p>
-                        <p><strong>左键点击</strong> - 选择节点</p>
-                        <p><strong>右键点击节点</strong> - 开始连接</p>
-                        <p><strong>右键点击目标</strong> - 完成连接</p>
-                        <p><strong>滚轮</strong> - 缩放画布</p>
-                        <p><strong>中键拖拽</strong> - 平移画布</p>
+                        <p><strong>左键拖拽</strong> 移动节点</p>
+                        <p><strong>左键点击</strong> 选择节点</p>
+                        <p><strong>右键点击</strong> 连接节点</p>
+                        <p><strong>滚轮</strong> 缩放画布</p>
+                        <p><strong>中键拖拽</strong> 平移画布</p>
                     </div>
                 </div>
             </div>
@@ -448,17 +526,17 @@
             </div>
             
             <div class="info-panel">
-                <h3>📊 统计信息</h3>
+                <h3>统计</h3>
                 <div class="info-item">
-                    <span>房间数量</span>
+                    <span>房间</span>
                     <span id="statNodes">0</span>
                 </div>
                 <div class="info-item">
-                    <span>连接数量</span>
+                    <span>连接</span>
                     <span id="statConnections">0</span>
                 </div>
                 <div class="info-item">
-                    <span>缩放比例</span>
+                    <span>缩放</span>
                     <span id="statZoom">100%</span>
                 </div>
             </div>
@@ -479,6 +557,8 @@
         let currentTool = 'select';
         let connectingFrom = null;
         let tempConnection = null;
+        let hoveredDirection = null;
+        let hoveredNode = null;
         
         let zoom = 1;
         let pan = { x: 0, y: 0 };
@@ -552,6 +632,7 @@
             canvas.addEventListener('mouseup', handleMouseUp);
             canvas.addEventListener('contextmenu', handleContextMenu);
             canvas.addEventListener('wheel', handleWheel);
+            canvas.addEventListener('mousemove', handleMouseHover);
         }
         
         function getMousePos(e) {
@@ -576,30 +657,35 @@
         }
         
         function getDirectionFromPos(node, pos) {
-            const size = 80;
+            const size = 76;
             const halfSize = size / 2;
+            const connectorRadius = 20; // 扩大一点检测区域，更容易点击
             
-            // 简化的方向连接器检测
-            const distanceX = Math.abs(pos.x - node.x);
-            const distanceY = Math.abs(pos.y - node.y);
-            
-            // 北连接器
-            if (distanceX <= 20 && pos.y < node.y && distanceY >= 35 && distanceY <= 55) {
+            // 北连接器 - 圆形检测
+            const northX = node.x;
+            const northY = node.y - halfSize;
+            if (Math.hypot(pos.x - northX, pos.y - northY) <= connectorRadius) {
                 return 'north';
             }
             
-            // 东连接器
-            if (distanceY <= 20 && pos.x > node.x && distanceX >= 35 && distanceX <= 55) {
+            // 东连接器 - 圆形检测
+            const eastX = node.x + halfSize;
+            const eastY = node.y;
+            if (Math.hypot(pos.x - eastX, pos.y - eastY) <= connectorRadius) {
                 return 'east';
             }
             
-            // 南连接器
-            if (distanceX <= 20 && pos.y > node.y && distanceY >= 35 && distanceY <= 55) {
+            // 南连接器 - 圆形检测
+            const southX = node.x;
+            const southY = node.y + halfSize;
+            if (Math.hypot(pos.x - southX, pos.y - southY) <= connectorRadius) {
                 return 'south';
             }
             
-            // 西连接器
-            if (distanceY <= 20 && pos.x < node.x && distanceX >= 35 && distanceX <= 55) {
+            // 西连接器 - 圆形检测
+            const westX = node.x - halfSize;
+            const westY = node.y;
+            if (Math.hypot(pos.x - westX, pos.y - westY) <= connectorRadius) {
                 return 'west';
             }
             
@@ -609,7 +695,6 @@
         let isDraggingConnection = false;
         
         function handleMouseDown(e) {
-            e.preventDefault();
             const pos = getMousePos(e);
             
             if (e.button === 1) {
@@ -620,21 +705,30 @@
             }
             
             if (e.button === 0) {
-                const node = getNodeAtPos(pos);
-                const direction = node ? getDirectionFromPos(node, pos) : null;
+                e.preventDefault();
                 
-                if (node && direction) {
-                    console.log('点击了方向连接器:', direction);
-                    // 点击了方向连接器，开始连接
-                    connectingFrom = node;
-                    tempConnection = { from: node, to: pos, fromDirection: direction };
-                    isDraggingConnection = true;
-                    setTool('connect');
-                    canvas.style.cursor = 'crosshair';
-                    // 保持节点选中状态
-                    selectNode(node);
-                } else if (node && !direction) {
-                    console.log('点击了节点中心');
+                // 首先检查所有节点的连接点
+                for (const node of nodes) {
+                    const direction = getDirectionFromPos(node, pos);
+                    if (direction) {
+                        console.log('Mouse down at:', pos.x, pos.y, 'Node:', node.id, 'Direction:', direction);
+                        // 点击了方向连接器，开始连接
+                        connectingFrom = node;
+                        tempConnection = { from: node, to: pos, fromDirection: direction };
+                        isDraggingConnection = true;
+                        setTool('connect');
+                        canvas.style.cursor = 'crosshair';
+                        selectNode(node);
+                        console.log('Started connection from:', node.id, 'direction:', direction);
+                        return;
+                    }
+                }
+                
+                // 然后检查节点中心
+                const node = getNodeAtPos(pos);
+                if (node) {
+                    console.log('Mouse down at:', pos.x, pos.y, 'Node:', node.id);
+                    // 点击了节点中心
                     selectNode(node);
                     draggingNode = node;
                     dragOffset = {
@@ -642,18 +736,21 @@
                         y: pos.y - node.y
                     };
                     canvas.style.cursor = 'grabbing';
+                    console.log('Started dragging node:', node.id);
                 } else {
-                    console.log('点击了空白处');
+                    // 点击了空白处
                     selectNode(null);
                     connectingFrom = null;
                     tempConnection = null;
                     isDraggingConnection = false;
                     canvas.style.cursor = 'default';
+                    console.log('Clicked on empty space');
                 }
             }
         }
         
         function handleMouseMove(e) {
+            e.preventDefault();
             const pos = getMousePos(e);
             
             if (isPanning) {
@@ -673,6 +770,7 @@
             if (isDraggingConnection && tempConnection) {
                 tempConnection.to = pos;
                 render();
+                console.log('Dragging connection to:', pos.x, pos.y);
             }
         }
         
@@ -693,18 +791,28 @@
             
             if (isDraggingConnection && connectingFrom) {
                 const pos = getMousePos(e);
-                const node = getNodeAtPos(pos);
-                const direction = node ? getDirectionFromPos(node, pos) : null;
                 
-                console.log('释放鼠标:', node, direction);
+                // 检查所有节点的连接点
+                let targetNode = null;
+                let targetDirection = null;
                 
-                if (node && direction && node !== connectingFrom) {
-                    console.log('创建连接:', connectingFrom.id, '->', node.id, tempConnection.fromDirection, '->', direction);
-                    addConnection(connectingFrom, node, tempConnection.fromDirection, direction);
-                    // 保持目标节点选中状态
-                    selectNode(node);
+                for (const node of nodes) {
+                    const direction = getDirectionFromPos(node, pos);
+                    if (direction) {
+                        targetNode = node;
+                        targetDirection = direction;
+                        break;
+                    }
+                }
+                
+                console.log('Mouse up at:', pos.x, pos.y, 'Node:', targetNode ? targetNode.id : null, 'Direction:', targetDirection);
+                
+                if (targetNode && targetDirection && targetNode !== connectingFrom) {
+                    console.log('Creating connection:', connectingFrom.id, '->', targetNode.id, tempConnection.fromDirection, '->', targetDirection);
+                    addConnection(connectingFrom, targetNode, tempConnection.fromDirection, targetDirection);
+                    selectNode(targetNode);
                 } else {
-                    // 保持原始节点选中状态
+                    console.log('Connection cancelled');
                     selectNode(connectingFrom);
                 }
                 
@@ -718,18 +826,29 @@
         function handleContextMenu(e) {
             e.preventDefault();
             const pos = getMousePos(e);
-            const node = getNodeAtPos(pos);
-            const direction = node ? getDirectionFromPos(node, pos) : null;
             
-            if (node && direction) {
+            // 检查所有节点的连接点
+            let targetNode = null;
+            let targetDirection = null;
+            
+            for (const node of nodes) {
+                const direction = getDirectionFromPos(node, pos);
+                if (direction) {
+                    targetNode = node;
+                    targetDirection = direction;
+                    break;
+                }
+            }
+            
+            if (targetNode && targetDirection) {
                 if (!connectingFrom) {
-                    connectingFrom = node;
-                    tempConnection = { from: node, to: pos, fromDirection: direction };
+                    connectingFrom = targetNode;
+                    tempConnection = { from: targetNode, to: pos, fromDirection: targetDirection };
                     isDraggingConnection = true;
                     setTool('connect');
                     canvas.style.cursor = 'crosshair';
-                } else if (node !== connectingFrom) {
-                    addConnection(connectingFrom, node, tempConnection.fromDirection, direction);
+                } else if (targetNode !== connectingFrom) {
+                    addConnection(connectingFrom, targetNode, tempConnection.fromDirection, targetDirection);
                     connectingFrom = null;
                     tempConnection = null;
                     isDraggingConnection = false;
@@ -759,6 +878,30 @@
             zoom = newZoom;
             updateStats();
             render();
+        }
+        
+        function handleMouseHover(e) {
+            const pos = getMousePos(e);
+            let hovered = false;
+            
+            for (const node of nodes) {
+                const direction = getDirectionFromPos(node, pos);
+                if (direction) {
+                    hoveredNode = node;
+                    hoveredDirection = direction;
+                    hovered = true;
+                    canvas.style.cursor = 'pointer';
+                    render();
+                    return;
+                }
+            }
+            
+            if (!hovered) {
+                hoveredNode = null;
+                hoveredDirection = null;
+                canvas.style.cursor = currentTool === 'pan' ? 'grab' : currentTool === 'connect' ? 'crosshair' : 'default';
+                render();
+            }
         }
         
         function addNode() {
@@ -1039,7 +1182,7 @@
         
         function drawConnection(conn) {
             const { from, to, fromDirection, toDirection } = conn;
-            const size = 80;
+            const size = 76;
             const halfSize = size / 2;
             
             // 计算连接起点和终点（从方向连接器开始）
@@ -1078,54 +1221,24 @@
                     break;
             }
             
+            // 绘制连接线 - 现代样式
             ctx.beginPath();
             ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
             
-            const dx = endX - startX;
-            const dy = endY - startY;
-            const cx1 = startX + dx * 0.3;
-            const cy1 = startY + dy * 0.3 - 20;
-            const cx2 = endX - dx * 0.3;
-            const cy2 = endY - dy * 0.3 - 20;
+            // 创建渐变线条
+            const lineGradient = ctx.createLinearGradient(startX, startY, endX, endY);
+            lineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+            lineGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
+            lineGradient.addColorStop(1, 'rgba(255, 255, 255, 0.35)');
             
-            ctx.bezierCurveTo(cx1, cy1, cx2, cy2, endX, endY);
-            ctx.strokeStyle = 'rgba(0, 212, 255, 0.5)';
+            ctx.strokeStyle = lineGradient;
             ctx.lineWidth = 2;
             ctx.stroke();
-            
-            // 绘制箭头
-            const angle = Math.atan2(endY - startY, endX - startX);
-            const midX = (startX + endX) / 2;
-            const midY = (startY + endY) / 2 - 10;
-            
-            ctx.save();
-            ctx.translate(midX, midY);
-            ctx.rotate(angle);
-            ctx.fillStyle = 'rgba(0, 212, 255, 0.5)';
-            ctx.beginPath();
-            ctx.moveTo(8, 0);
-            ctx.lineTo(-4, -5);
-            ctx.lineTo(-4, 5);
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
-            
-            // 绘制方向文字
-            ctx.font = '10px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            
-            const fromDirX = startX + (endX - startX) * 0.3;
-            const fromDirY = startY + (endY - startY) * 0.3 - 10;
-            ctx.fillText(fromDirection, fromDirX, fromDirY);
-            
-            const toDirX = endX - (endX - startX) * 0.3;
-            const toDirY = endY - (endY - startY) * 0.3 - 10;
-            ctx.fillText(toDirection, toDirX, toDirY);
         }
         
         function drawTempConnection(from, to, fromDirection) {
-            const size = 80;
+            const size = 76;
             const halfSize = size / 2;
             
             // 计算连接起点（从方向连接器开始）
@@ -1147,11 +1260,18 @@
                     break;
             }
             
+            // 绘制临时连接线 - 现代样式
             ctx.beginPath();
             ctx.moveTo(startX, startY);
             ctx.lineTo(to.x, to.y);
-            ctx.strokeStyle = '#00d4ff';
-            ctx.lineWidth = 3;
+            
+            // 创建渐变线条
+            const lineGradient = ctx.createLinearGradient(startX, startY, to.x, to.y);
+            lineGradient.addColorStop(0, '#38bdf8');
+            lineGradient.addColorStop(1, '#0ea5e9');
+            
+            ctx.strokeStyle = lineGradient;
+            ctx.lineWidth = 2.5;
             ctx.setLineDash([10, 5]);
             ctx.stroke();
             ctx.setLineDash([]);
@@ -1162,83 +1282,169 @@
                 const isSelected = node === selectedNode;
                 const isConnecting = node === connectingFrom;
                 const color = nodeColors[node.colorIndex];
-                const size = 80;
+                const size = 76;
                 const halfSize = size / 2;
+                const cornerRadius = 14;
                 
-                // 绘制方形背景
-                ctx.fillStyle = isSelected ? 'rgba(0, 212, 255, 0.2)' : 'rgba(0, 0, 0, 0.3)';
-                ctx.fillRect(node.x - halfSize, node.y - halfSize, size, size);
+                // 绘制背景光晕 - 增强深度和层次感
+                if (isSelected) {
+                    const glowGradient = ctx.createRadialGradient(
+                        node.x, node.y, 0,
+                        node.x, node.y, size * 0.7
+                    );
+                    glowGradient.addColorStop(0, 'rgba(56, 189, 248, 0.3)');
+                    glowGradient.addColorStop(0.5, 'rgba(56, 189, 248, 0.15)');
+                    glowGradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
+                    
+                    ctx.fillStyle = glowGradient;
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, size * 0.7, 0, Math.PI * 2);
+                    ctx.fill();
+                }
                 
-                // 绘制方形主体
+                // 绘制主体 - 现代渐变效果
                 const gradient = ctx.createLinearGradient(
                     node.x - halfSize, node.y - halfSize,
                     node.x + halfSize, node.y + halfSize
                 );
                 gradient.addColorStop(0, color);
-                gradient.addColorStop(1, shadeColor(color, -30));
+                gradient.addColorStop(0.5, shadeColor(color, -10));
+                gradient.addColorStop(1, shadeColor(color, -35));
+                
+                // 绘制阴影 - 增强立体感
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+                roundRect(ctx, node.x - halfSize + 3, node.y - halfSize + 3, size, size, cornerRadius);
+                ctx.fill();
+                
+                // 绘制主体
                 ctx.fillStyle = gradient;
-                ctx.fillRect(node.x - halfSize, node.y - halfSize, size, size);
+                roundRect(ctx, node.x - halfSize, node.y - halfSize, size, size, cornerRadius);
+                ctx.fill();
                 
-                // 绘制边框
-                ctx.strokeStyle = isSelected ? '#fff' : (isConnecting ? '#ff0' : 'rgba(255,255,255,0.3)');
-                ctx.lineWidth = isSelected ? 3 : 2;
-                ctx.strokeRect(node.x - halfSize, node.y - halfSize, size, size);
+                // 绘制边框 - 现代样式
+                if (isSelected) {
+                    ctx.strokeStyle = '#38bdf8';
+                    ctx.lineWidth = 2.5;
+                } else if (isConnecting) {
+                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.8)';
+                    ctx.lineWidth = 2.5;
+                } else {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                    ctx.lineWidth = 1;
+                }
+                roundRect(ctx, node.x - halfSize, node.y - halfSize, size, size, cornerRadius);
+                ctx.stroke();
                 
-                // 绘制四个方向的连接器
-                const connectorSize = 10;
-                const connectorColor = isSelected ? '#fff' : 'rgba(255,255,255,0.5)';
+                // 绘制高光 - 增强质感
+                const highlightGradient = ctx.createLinearGradient(
+                    node.x - halfSize, node.y - halfSize,
+                    node.x + halfSize, node.y - halfSize
+                );
+                highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+                highlightGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
+                highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
                 
-                // 北
-                ctx.fillStyle = connectorColor;
-                ctx.fillRect(node.x - connectorSize/2, node.y - halfSize - connectorSize, connectorSize, connectorSize);
-                ctx.font = '10px Arial';
-                ctx.fillStyle = 'black';
+                ctx.strokeStyle = highlightGradient;
+                ctx.lineWidth = 1.5;
+                roundRect(ctx, node.x - halfSize + 1, node.y - halfSize + 1, size - 2, size / 3, cornerRadius - 2);
+                ctx.stroke();
+                
+                // 绘制连接点 - 现代精致设计
+                const connectorRadius = 12;
+                const connectorHoverRadius = 16;
+                
+                drawConnector(node.x, node.y - halfSize, 'north', node, isSelected, isConnecting, connectorRadius, connectorHoverRadius);
+                drawConnector(node.x + halfSize, node.y, 'east', node, isSelected, isConnecting, connectorRadius, connectorHoverRadius);
+                drawConnector(node.x, node.y + halfSize, 'south', node, isSelected, isConnecting, connectorRadius, connectorHoverRadius);
+                drawConnector(node.x - halfSize, node.y, 'west', node, isSelected, isConnecting, connectorRadius, connectorHoverRadius);
+                
+                // 绘制房间信息 - 现代排版
+                ctx.font = '26px system-ui, -apple-system, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText('北', node.x, node.y - halfSize - connectorSize/2);
-                
-                // 东
-                ctx.fillStyle = connectorColor;
-                ctx.fillRect(node.x + halfSize, node.y - connectorSize/2, connectorSize, connectorSize);
-                ctx.fillStyle = 'black';
-                ctx.fillText('东', node.x + halfSize + connectorSize/2, node.y);
-                
-                // 南
-                ctx.fillStyle = connectorColor;
-                ctx.fillRect(node.x - connectorSize/2, node.y + halfSize, connectorSize, connectorSize);
-                ctx.fillStyle = 'black';
-                ctx.fillText('南', node.x, node.y + halfSize + connectorSize/2);
-                
-                // 西
-                ctx.fillStyle = connectorColor;
-                ctx.fillRect(node.x - halfSize - connectorSize, node.y - connectorSize/2, connectorSize, connectorSize);
-                ctx.fillStyle = 'black';
-                ctx.fillText('西', node.x - halfSize - connectorSize/2, node.y);
-                
-                // 绘制房间信息
-                ctx.font = '24px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle = 'white';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
                 const icon = envIcons[node.environment] || '📍';
-                ctx.fillText(icon, node.x, node.y - 8);
+                ctx.fillText(icon, node.x, node.y - 4);
                 
-                ctx.font = 'bold 11px Arial';
-                ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                const name = node.name.length > 8 ? node.name.substring(0, 8) + '...' : node.name;
+                ctx.font = '500 11px system-ui, -apple-system, sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                const name = node.name.length > 8 ? node.name.substring(0, 8) + '…' : node.name;
                 ctx.fillText(name, node.x, node.y + 20);
                 
                 if (node.isSafe) {
-                    ctx.font = '10px Arial';
-                    ctx.fillText('🛡️', node.x + 30, node.y - 25);
+                    ctx.font = '11px system-ui, -apple-system, sans-serif';
+                    ctx.fillText('🛡️', node.x + 28, node.y - 24);
                 }
                 
                 if (node.level > 1) {
-                    ctx.font = 'bold 10px Arial';
-                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                    ctx.fillText('Lv.' + node.level, node.x - 30, node.y - 25);
+                    ctx.font = '600 10px system-ui, -apple-system, sans-serif';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                    ctx.fillText('Lv' + node.level, node.x - 28, node.y - 24);
                 }
             });
+        }
+        
+        function drawConnector(x, y, direction, node, isSelected, isConnecting, radius, hoverRadius) {
+            const isHovered = hoveredNode === node && hoveredDirection === direction;
+            const currentRadius = isHovered ? hoverRadius : radius;
+            
+            // 绘制外圈 - 现代精致样式
+            ctx.beginPath();
+            ctx.arc(x, y, currentRadius, 0, Math.PI * 2);
+            
+            if (isHovered) {
+                const connectorGradient = ctx.createRadialGradient(
+                    x, y, 0,
+                    x, y, currentRadius
+                );
+                connectorGradient.addColorStop(0, '#38bdf8');
+                connectorGradient.addColorStop(1, '#0ea5e9');
+                ctx.fillStyle = connectorGradient;
+            } else if (isSelected) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            } else {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            }
+            ctx.fill();
+            
+            // 绘制内圈 - 现代样式
+            ctx.beginPath();
+            ctx.arc(x, y, currentRadius * 0.6, 0, Math.PI * 2);
+            
+            if (isHovered) {
+                ctx.fillStyle = 'rgba(15, 17, 21, 0.95)';
+            } else {
+                ctx.fillStyle = 'rgba(15, 17, 21, 0.6)';
+            }
+            ctx.fill();
+            
+            // 绘制方向符号 - 现代样式
+            ctx.font = isHovered ? '600 11px system-ui, -apple-system, sans-serif' : '500 9px system-ui, -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = isHovered ? '#fff' : 'rgba(255, 255, 255, 0.95)';
+            
+            const symbols = {
+                north: '↑',
+                east: '→',
+                south: '↓',
+                west: '←'
+            };
+            ctx.fillText(symbols[direction], x, y);
+        }
+        
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
         }
         
         function shadeColor(color, percent) {
@@ -1253,8 +1459,6 @@
                 (B < 255 ? B < 1 ? 0 : B : 255)
             ).toString(16).slice(1);
         }
-        
-        init();
         
         function createDemoWorld() {
             const positions = [
@@ -1306,7 +1510,7 @@
             render();
         }
         
-        setTimeout(createDemoWorld, 500);
+        init();
     </script>
 </body>
 </html>

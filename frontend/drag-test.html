@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拖拽测试页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: rgba(0,0,0,0.5);
+            padding: 20px;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .canvas {
+            flex: 1;
+            position: relative;
+        }
+        
+        #testCanvas {
+            display: block;
+            background: #16213e;
+            cursor: crosshair;
+        }
+        
+        .instructions {
+            margin-bottom: 20px;
+        }
+        
+        .instructions h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        
+        .instructions p {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .debug {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .debug h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        
+        #debugLog {
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: #00d4ff;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background: #7b2cbf;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>拖拽测试</h2>
+            
+            <div class="instructions">
+                <h3>测试步骤：</h3>
+                <p>1. 点击第一个节点的方向连接器</p>
+                <p>2. 按住鼠标左键拖动</p>
+                <p>3. 释放鼠标到第二个节点的方向连接器</p>
+                <p>4. 观察控制台和调试信息</p>
+            </div>
+            
+            <button class="btn" onclick="resetTest()">重置测试</button>
+            <button class="btn" onclick="addNode()">添加节点</button>
+            <button class="btn" onclick="toggleDebug()" id="debugBtn">开启Debug</button>
+            
+            <div class="debug">
+                <h3>调试信息：</h3>
+                <div id="debugLog"></div>
+            </div>
+        </div>
+        
+        <div class="canvas">
+            <canvas id="testCanvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('testCanvas');
+        const ctx = canvas.getContext('2d');
+        const debugLog = document.getElementById('debugLog');
+        
+        let nodes = [];
+        let connections = [];
+        let connectingFrom = null;
+        let tempConnection = null;
+        let isDragging = false;
+        let hoveredDirection = null;
+        let hoveredNode = null;
+        let debugMode = false;
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            debugLog.appendChild(logEntry);
+            debugLog.scrollTop = debugLog.scrollHeight;
+            console.log(message);
+        }
+        
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            render();
+        }
+        
+        function addNode(x = canvas.width/2, y = canvas.height/2) {
+            const node = {
+                id: 'node_' + nodes.length,
+                x: x,
+                y: y,
+                size: 80
+            };
+            nodes.push(node);
+            log(`添加节点: ${node.id} at (${Math.round(x)}, ${Math.round(y)})`);
+            render();
+        }
+        
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+        
+        function getNodeAtPos(pos) {
+            for (let i = nodes.length - 1; i >= 0; i--) {
+                const node = nodes[i];
+                const halfSize = node.size / 2;
+                if (pos.x >= node.x - halfSize && pos.x <= node.x + halfSize &&
+                    pos.y >= node.y - halfSize && pos.y <= node.y + halfSize) {
+                    return node;
+                }
+            }
+            return null;
+        }
+        
+        function getDirectionFromPos(node, pos) {
+            const halfSize = node.size / 2;
+            const connectorSize = 10;
+            
+            // 北连接器 - 与视觉显示一致
+            if (pos.x >= node.x - connectorSize - 2 && pos.x <= node.x + connectorSize + 2 &&
+                pos.y >= node.y - halfSize - connectorSize - 15 &&
+                pos.y <= node.y - halfSize + 5) {
+                return 'north';
+            }
+            
+            // 东连接器 - 与视觉显示一致
+            if (pos.y >= node.y - connectorSize - 2 && pos.y <= node.y + connectorSize + 2 &&
+                pos.x >= node.x + halfSize - 5 &&
+                pos.x <= node.x + halfSize + connectorSize + 15) {
+                return 'east';
+            }
+            
+            // 南连接器 - 与视觉显示一致
+            if (pos.x >= node.x - connectorSize - 2 && pos.x <= node.x + connectorSize + 2 &&
+                pos.y >= node.y + halfSize - 5 &&
+                pos.y <= node.y + halfSize + connectorSize + 15) {
+                return 'south';
+            }
+            
+            // 西连接器 - 与视觉显示一致
+            if (pos.y >= node.y - connectorSize - 2 && pos.y <= node.y + connectorSize + 2 &&
+                pos.x >= node.x - halfSize - connectorSize - 15 &&
+                pos.x <= node.x - halfSize + 5) {
+                return 'west';
+            }
+            
+            return null;
+        }
+        
+        function addConnection(from, to, fromDirection, toDirection) {
+            connections.push({ from, to, fromDirection, toDirection });
+            log(`创建连接: ${from.id}(${fromDirection}) -> ${to.id}(${toDirection})`);
+            render();
+        }
+        
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制连接
+            connections.forEach(conn => {
+                const { from, to, fromDirection, toDirection } = conn;
+                const halfSize = from.size / 2;
+                
+                let startX = from.x;
+                let startY = from.y;
+                let endX = to.x;
+                let endY = to.y;
+                
+                switch (fromDirection) {
+                    case 'north': startY = from.y - halfSize; break;
+                    case 'east': startX = from.x + halfSize; break;
+                    case 'south': startY = from.y + halfSize; break;
+                    case 'west': startX = from.x - halfSize; break;
+                }
+                
+                switch (toDirection) {
+                    case 'north': endY = to.y - halfSize; break;
+                    case 'east': endX = to.x + halfSize; break;
+                    case 'south': endY = to.y + halfSize; break;
+                    case 'west': endX = to.x - halfSize; break;
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.strokeStyle = '#00d4ff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+            
+            // 绘制临时连接
+            if (tempConnection) {
+                const { from, to, fromDirection } = tempConnection;
+                const halfSize = from.size / 2;
+                let startX = from.x;
+                let startY = from.y;
+                
+                switch (fromDirection) {
+                    case 'north': startY = from.y - halfSize; break;
+                    case 'east': startX = from.x + halfSize; break;
+                    case 'south': startY = from.y + halfSize; break;
+                    case 'west': startX = from.x - halfSize; break;
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(to.x, to.y);
+                ctx.strokeStyle = '#ff0';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            // 绘制节点
+            nodes.forEach(node => {
+                const halfSize = node.size / 2;
+                
+                // 绘制方形
+                ctx.fillStyle = '#7b2cbf';
+                ctx.fillRect(node.x - halfSize, node.y - halfSize, node.size, node.size);
+                
+                // 绘制边框
+                ctx.strokeStyle = '#00d4ff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(node.x - halfSize, node.y - halfSize, node.size, node.size);
+                
+                // 绘制方向连接器
+                const connectorSize = 10;
+                
+                // 北
+                if (hoveredNode === node && hoveredDirection === 'north') {
+                    // 悬停效果：更大的连接器
+                    ctx.fillStyle = '#00d4ff';
+                    ctx.fillRect(node.x - connectorSize, node.y - halfSize - connectorSize - 5, connectorSize * 2, connectorSize * 1.5);
+                    ctx.fillStyle = '#000';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('北', node.x, node.y - halfSize - connectorSize/2);
+                } else {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(node.x - connectorSize/2, node.y - halfSize - connectorSize, connectorSize, connectorSize);
+                    ctx.fillStyle = '#000';
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('北', node.x, node.y - halfSize - connectorSize/2);
+                }
+                
+                // 东
+                if (hoveredNode === node && hoveredDirection === 'east') {
+                    ctx.fillStyle = '#00d4ff';
+                    ctx.fillRect(node.x + halfSize - 5, node.y - connectorSize, connectorSize * 1.5, connectorSize * 2);
+                    ctx.fillStyle = '#000';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('东', node.x + halfSize + connectorSize/2, node.y);
+                } else {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(node.x + halfSize, node.y - connectorSize/2, connectorSize, connectorSize);
+                    ctx.fillStyle = '#000';
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('东', node.x + halfSize + connectorSize/2, node.y);
+                }
+                
+                // 南
+                if (hoveredNode === node && hoveredDirection === 'south') {
+                    ctx.fillStyle = '#00d4ff';
+                    ctx.fillRect(node.x - connectorSize, node.y + halfSize - 5, connectorSize * 2, connectorSize * 1.5);
+                    ctx.fillStyle = '#000';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('南', node.x, node.y + halfSize + connectorSize/2);
+                } else {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(node.x - connectorSize/2, node.y + halfSize, connectorSize, connectorSize);
+                    ctx.fillStyle = '#000';
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('南', node.x, node.y + halfSize + connectorSize/2);
+                }
+                
+                // 西
+                if (hoveredNode === node && hoveredDirection === 'west') {
+                    ctx.fillStyle = '#00d4ff';
+                    ctx.fillRect(node.x - halfSize - connectorSize - 5, node.y - connectorSize, connectorSize * 1.5, connectorSize * 2);
+                    ctx.fillStyle = '#000';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('西', node.x - halfSize - connectorSize/2, node.y);
+                } else {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(node.x - halfSize - connectorSize, node.y - connectorSize/2, connectorSize, connectorSize);
+                    ctx.fillStyle = '#000';
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('西', node.x - halfSize - connectorSize/2, node.y);
+                }
+                
+                // 绘制节点ID
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(node.id, node.x, node.y);
+            });
+            
+            // 绘制debug信息 - 显示点击识别区
+            if (debugMode) {
+                nodes.forEach(node => {
+                    const halfSize = node.size / 2;
+                    const connectorSize = 10;
+                    
+                    // 北连接器识别区
+                    ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(
+                        node.x - connectorSize - 2, 
+                        node.y - halfSize - connectorSize - 15, 
+                        connectorSize * 2 + 4, 
+                        connectorSize + 20
+                    );
+                    
+                    // 东连接器识别区
+                    ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+                    ctx.strokeRect(
+                        node.x + halfSize - 5, 
+                        node.y - connectorSize - 2, 
+                        connectorSize + 20, 
+                        connectorSize * 2 + 4
+                    );
+                    
+                    // 南连接器识别区
+                    ctx.strokeStyle = 'rgba(0, 0, 255, 0.5)';
+                    ctx.strokeRect(
+                        node.x - connectorSize - 2, 
+                        node.y + halfSize - 5, 
+                        connectorSize * 2 + 4, 
+                        connectorSize + 20
+                    );
+                    
+                    // 西连接器识别区
+                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+                    ctx.strokeRect(
+                        node.x - halfSize - connectorSize - 15, 
+                        node.y - connectorSize - 2, 
+                        connectorSize + 20, 
+                        connectorSize * 2 + 4
+                    );
+                });
+            }
+        }
+        
+        function resetTest() {
+            nodes = [];
+            connections = [];
+            connectingFrom = null;
+            tempConnection = null;
+            isDragging = false;
+            debugLog.innerHTML = '';
+            log('测试已重置');
+            
+            // 添加两个测试节点
+            addNode(200, 200);
+            addNode(400, 300);
+        }
+        
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const btn = document.getElementById('debugBtn');
+            btn.textContent = debugMode ? '关闭Debug' : '开启Debug';
+            btn.style.background = debugMode ? '#7b2cbf' : '#00d4ff';
+            log(`Debug模式 ${debugMode ? '开启' : '关闭'}`);
+            render();
+        }
+        
+        function setupEventListeners() {
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+            canvas.addEventListener('mousemove', handleMouseHover);
+        }
+        
+        function handleMouseDown(e) {
+            e.preventDefault();
+            const pos = getMousePos(e);
+            log(`鼠标按下: (${pos.x}, ${pos.y})`);
+            
+            // 首先检查所有节点的连接点
+            for (const node of nodes) {
+                const direction = getDirectionFromPos(node, pos);
+                if (direction) {
+                    log(`点击了方向连接器: ${node.id} -> ${direction}`);
+                    connectingFrom = node;
+                    tempConnection = { from: node, to: pos, fromDirection: direction };
+                    isDragging = true;
+                    return;
+                }
+            }
+            
+            // 然后检查节点中心
+            const node = getNodeAtPos(pos);
+            if (node) {
+                log(`点击了节点中心: ${node.id}`);
+            } else {
+                log(`点击了空白处`);
+            }
+        }
+        
+        function handleMouseMove(e) {
+            e.preventDefault();
+            if (isDragging && tempConnection) {
+                const pos = getMousePos(e);
+                tempConnection.to = pos;
+                render();
+            }
+        }
+        
+        function handleMouseHover(e) {
+            const pos = getMousePos(e);
+            let hovered = false;
+            
+            for (const node of nodes) {
+                const direction = getDirectionFromPos(node, pos);
+                if (direction) {
+                    hoveredNode = node;
+                    hoveredDirection = direction;
+                    hovered = true;
+                    canvas.style.cursor = 'pointer';
+                    render();
+                    return;
+                }
+            }
+            
+            if (!hovered) {
+                hoveredNode = null;
+                hoveredDirection = null;
+                canvas.style.cursor = 'crosshair';
+                render();
+            }
+        }
+        
+        function handleMouseUp(e) {
+            e.preventDefault();
+            const pos = getMousePos(e);
+            log(`鼠标释放: (${pos.x}, ${pos.y})`);
+            
+            if (isDragging && connectingFrom) {
+                // 检查所有节点的连接点
+                let targetNode = null;
+                let targetDirection = null;
+                
+                for (const node of nodes) {
+                    const direction = getDirectionFromPos(node, pos);
+                    if (direction) {
+                        targetNode = node;
+                        targetDirection = direction;
+                        break;
+                    }
+                }
+                
+                if (targetNode && targetDirection && targetNode !== connectingFrom) {
+                    addConnection(connectingFrom, targetNode, tempConnection.fromDirection, targetDirection);
+                } else if (targetNode) {
+                    log(`释放到节点: ${targetNode.id}`);
+                } else {
+                    log(`释放到空白处`);
+                }
+            }
+            
+            connectingFrom = null;
+            tempConnection = null;
+            isDragging = false;
+            render();
+        }
+        
+        // 初始化
+        window.addEventListener('resize', resizeCanvas);
+        setupEventListeners();
+        resizeCanvas();
+        resetTest();
+    </script>
+</body>
+</html>
